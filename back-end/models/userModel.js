@@ -10,19 +10,17 @@ const userSchema = new mongoose.Schema({
     type: String,
   },
   avatar: String,
-  followers: {
-    type: [
-      //mảng chứa các objectId của những người followers
-      mongoose.SchemaTypes.ObjectId,
-    ],
-    ref: 'User', //Tham chiếu tới collection User
-  },
-  listOfPosts: {
-    type: [
-      //mảng chứa các objectId của những bài đăng về công thức nấu ăn
-      mongoose.SchemaTypes.ObjectId,
-    ],
-    ref: 'Recipe', //Tham chiếu tới collection Recipe
+  // listOfPosts: {
+  //   type: [
+  //     //mảng chứa các objectId của những bài đăng về công thức nấu ăn
+  //     mongoose.SchemaTypes.ObjectId,
+  //   ],
+  //   ref: 'Recipe', //Tham chiếu tới collection Recipe
+  // },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user',
   },
   createdAt: {
     type: Date,
