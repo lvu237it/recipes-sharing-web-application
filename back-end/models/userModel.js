@@ -10,13 +10,6 @@ const userSchema = new mongoose.Schema({
     type: String,
   },
   avatar: String,
-  // listOfPosts: {
-  //   type: [
-  //     //mảng chứa các objectId của những bài đăng về công thức nấu ăn
-  //     mongoose.SchemaTypes.ObjectId,
-  //   ],
-  //   ref: 'Recipe', //Tham chiếu tới collection Recipe
-  // },
   role: {
     type: String,
     enum: ['user', 'admin'],

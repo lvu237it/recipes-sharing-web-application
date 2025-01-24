@@ -8,19 +8,36 @@ const recipeSchema = new mongoose.Schema({
   foodCategories: {
     type: [String], // vi du: [mon xao, mon luoc] => phuc vu cho muc dich filter
     enum: [
-      'mon xao',
-      'mon luoc',
-      'mon nuong',
-      'mon chien',
-      'mon canh',
-      'mon nom',
-      'mon lau',
+      'món xào',
+      'món luộc',
+      'món nướng',
+      'món chiên',
+      'món canh',
+      'món nộm',
+      'món gỏi',
+      'món lẩu',
+      'món nước',
+      'món chính',
+      'món ăn nhẹ',
+      'món nhậu',
+      'món hấp',
+      'món trộn',
+      'món chay',
+      'món bánh',
+      'món kho',
+      'món cháo',
+      'món ăn vặt',
+      'món cuốn',
     ],
     required: [true, 'A post needs a category!'],
   },
   title: {
     type: String,
     required: [true, 'A post needs a title!'],
+  },
+  description: {
+    type: String,
+    required: [true, 'A post needs a description!'],
   },
   ingredients: {
     type: [String],
@@ -46,15 +63,6 @@ const recipeSchema = new mongoose.Schema({
     ref: 'User', //Tham chiếu tới collection User
     required: true,
   },
-  // comments: [
-  //   {
-  //     user: {
-  //       type: mongoose.SchemaTypes.ObjectId,
-  //       ref: 'User', //Tham chiếu tới collection User
-  //     },
-  //     commentDescription: String,
-  //   },
-  // ],
   createdAt: {
     type: Date,
     default: Date.now(),
