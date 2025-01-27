@@ -3,6 +3,7 @@ const express = require('express');
 const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 //utils
 const AppError = require('./utils/appError');
 
@@ -15,8 +16,9 @@ const recipeRouter = require('./routes/recipeRoutes');
 
 //các middleware phục vụ cho việc develop
 app.use(morgan('dev'));
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cors());
 
 //routing handlers
 // --Định tuyến sẵn cho các request từ client với các domain như /recipes, /users

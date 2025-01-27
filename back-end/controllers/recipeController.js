@@ -20,8 +20,8 @@ exports.getAllRecipes = async (req, res) => {
 
 exports.createNewRecipe = async (req, res) => {
   try {
-    //Lấy tham số từ body của request từ client và đem xử lý tại server
     const {
+      imageUrl,
       foodCategories,
       title,
       description,
@@ -31,17 +31,19 @@ exports.createNewRecipe = async (req, res) => {
       sources,
     } = req.body;
 
+    // Lưu recipe vào cơ sở dữ liệu
     const recentRecipeCreated = await Recipe.create({
-      foodCategories,
+      imageUrl, // Đã có URL ảnh từ frontend
+      foodCategories: JSON.parse(foodCategories),
       title,
       description,
-      ingredients,
-      steps,
+      ingredients: JSON.parse(ingredients),
+      steps: JSON.parse(steps),
       owner,
-      sources,
+      sources: JSON.parse(sources),
     });
 
-    //Trả về kết quả hiển thị dưới dạng json
+    // Trả về kết quả hiển thị dưới dạng json
     res.json({
       message: 'success',
       status: 200,
