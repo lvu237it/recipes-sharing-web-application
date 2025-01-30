@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; */
+  /* line-height: 1.5; */
+  /* font-weight: 400; */
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
@@ -13,24 +15,20 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
+/* a {
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
 }
 a:hover {
   color: #535bf2;
-}
+} */
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: 'Merriweather', sans-serif;
 }
 
-h1 {
+/* h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
@@ -52,7 +50,34 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+} */
+.button-save-recipe {
+  background: white;
+  color: #528135;
+  border: 0.1px solid #528135;
+  border-radius: 20px;
+  padding: 6px 14px;
+  transition: 0.3s ease-in-out;
 }
+
+/* .button-save-recipe:hover {
+  background: rgb(41, 116, 191);
+  color: white;
+} */
+
+.button-show-details {
+  background: #528135;
+  color: white;
+  border: 0.1px solid gray;
+  border-radius: 20px;
+  padding: 6px 14px;
+  transition: 0.3s ease-in-out;
+}
+
+/* .button-show-details:hover {
+  background: green;
+  color: white;
+} */
 
 @media (prefers-color-scheme: light) {
   :root {

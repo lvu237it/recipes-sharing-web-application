@@ -31,16 +31,25 @@ exports.createNewRecipe = async (req, res) => {
       sources,
     } = req.body;
 
+    // Kiểm tra và parse nếu là chuỗi JSON
+    const parseIfString = (value) => {
+      try {
+        return typeof value === 'string' ? JSON.parse(value) : value;
+      } catch (error) {
+        return value; // Nếu không phải chuỗi JSON, trả về giá trị nguyên vẹn
+      }
+    };
+
     // Lưu recipe vào cơ sở dữ liệu
     const recentRecipeCreated = await Recipe.create({
       imageUrl, // Đã có URL ảnh từ frontend
-      foodCategories: JSON.parse(foodCategories),
+      foodCategories: parseIfString(foodCategories),
       title,
       description,
-      ingredients: JSON.parse(ingredients),
-      steps: JSON.parse(steps),
+      ingredients: parseIfString(ingredients),
+      steps: parseIfString(steps),
       owner,
-      sources: JSON.parse(sources),
+      sources: parseIfString(sources),
     });
 
     // Trả về kết quả hiển thị dưới dạng json
