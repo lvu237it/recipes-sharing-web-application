@@ -8,6 +8,38 @@ export const useCommon = () => useContext(CommonContext);
 
 export const Common = ({ children }) => {
   const [recipes, setRecipes] = useState([]);
+  const [filteredRecipes, setFilteredRecipes] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortOrder, setSortOrder] = useState('latest');
+
+  const listOfCategories = [
+    'món chính',
+    'món ăn nhẹ',
+    'món xào',
+    'món luộc',
+    'món nướng',
+    'món chiên',
+    'món canh',
+    'món nộm',
+    'món gỏi',
+    'món lẩu',
+    'món nước',
+    'món nhậu',
+    'món hấp',
+    'món trộn',
+    'món chay',
+    'món bánh',
+    'món kho',
+    'món cháo',
+    'món ăn vặt',
+    'món cuốn',
+    'món dịp đặc biệt',
+    'món giò',
+    'món khai vị',
+    'món salad',
+    'món hầm',
+    'món súp',
+  ];
 
   // const location = useLocation();
   // const navigate = useNavigate();
@@ -34,6 +66,14 @@ export const Common = ({ children }) => {
     <CommonContext.Provider
       value={{
         recipes,
+        setRecipes,
+        selectedCategory,
+        setSelectedCategory,
+        filteredRecipes,
+        setFilteredRecipes,
+        listOfCategories,
+        sortOrder,
+        setSortOrder,
       }}
     >
       {children}

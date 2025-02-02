@@ -3,10 +3,21 @@ const Recipe = require('../models/recipeModel');
 exports.getAllRecipes = async (req, res) => {
   try {
     const results = await Recipe.find({});
+
+    // Thay thế ký tự \n bằng thẻ <div>
+    const updatedResults = results.map((recipe) => ({
+      ...recipe._doc,
+      description: recipe.description
+        .replace(/'/g, '"')
+        .split('\n')
+        .map((line) => `<div>${line}</div>`)
+        .join(''),
+    }));
+
     res.json({
       message: 'success',
       status: 200,
-      data: results,
+      data: updatedResults,
     });
   } catch (error) {
     console.log('error while getting recipes', error);
