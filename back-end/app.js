@@ -12,9 +12,7 @@ const recipeRouter = require("./routes/recipeRoutes");
 const userRouter = require("./routes/userRoutes");
 const authenticationRouter = require("./routes/authenticationRoutes");
 const adminRouter = require("./routes/adminRoutes");
-const userRouter = require("./routes/userRoutes");
 const commentRouter = require("./routes/commentRoutes");
-const recipeRouter = require("./routes/recipeRoutes");
 
 //các middleware phục vụ cho việc develop
 app.use(morgan("dev"));
