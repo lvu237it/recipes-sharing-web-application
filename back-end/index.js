@@ -18,7 +18,7 @@ dotenv.config({
 const app = require('./app');
 
 //create connection
-const DBRecipesSharingWebApp = process.env.DATABASE_LOCAL;
+const DBRecipesSharingWebApp = process.env.DATABASE_URI;
 mongoose
   .connect(DBRecipesSharingWebApp) //this is a promise
   .then((con) => {
