@@ -7,8 +7,11 @@ const bodyParser = require('body-parser');
 const AppError = require('./utils/appError');
 
 //import routers
-const recipeRouter = require('./routes/recipeRoutes');
+const authenticationRouter = require('./routes/authenticationRoutes');
+const adminRouter = require('./routes/adminRoutes');
 const userRouter = require('./routes/userRoutes');
+const commentRouter = require('./routes/commentRoutes');
+const recipeRouter = require('./routes/recipeRoutes');
 
 //các middleware phục vụ cho việc develop
 app.use(morgan('dev'));
@@ -17,12 +20,14 @@ app.use(express.json());
 
 //routing handlers
 // --Định tuyến sẵn cho các request từ client với các domain như /recipes, /users
-app.use('/recipes', recipeRouter);
+app.use('/authentication', authenticationRouter);
+app.use('/admin', adminRouter);
 app.use('/users', userRouter);
+app.use('/recipes', recipeRouter);
+app.use('/comments', commentRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 module.exports = app;
-//test
