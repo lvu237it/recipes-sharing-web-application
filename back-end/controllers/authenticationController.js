@@ -85,7 +85,7 @@ exports.loginUser = async (req, res) => {
   const token = jwt.sign(
     { userId: user._id, email: user.email }, 
     SECRET_KEY, 
-    { expiresIn: "30s" }
+    { expiresIn: "7200s" }
   );
 
   // Trả về token + thông tin user (không gửi password)
