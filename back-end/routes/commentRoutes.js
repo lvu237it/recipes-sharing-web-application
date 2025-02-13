@@ -2,22 +2,35 @@ const express = require("express");
 const router = express.Router();
 const commentController = require("../controllers/commentController");
 
-// Create a new comment
-router.post("/recipe/:id/create-new-comment", commentController.createComment);
-
 // Get all comments for a specific recipe
-router.get("/recipe/:id/comments", commentController.getAllComments);
+router.get("/recipe/:recipeId/comments", commentController.getAllComments);
 
-// Get a specific comment
-router.get("/recipe/:id/comment/:id", commentController.getComment);
+// Admin routes
+router.post(
+  "/admin/:adminId/recipe/:recipeId/add-comment",
+  commentController.adminAddComment
+);
+router.patch(
+  "/admin/:adminId/recipe/:recipeId/edit-comment/:commentId",
+  commentController.adminEditComment
+);
+router.patch(
+  "/admin/:adminId/recipe/:recipeId/delete-comment/:commentId",
+  commentController.adminDeleteComment
+);
 
-// Edit a comment
-router.put("/recipe/:id/comment/:id/edit", commentController.editComment);
-
-// Delete a comment (soft delete)
-router.delete(
-  "/recipe/:id/comment/:id/delete",
-  commentController.deleteComment
+// User routes
+router.post(
+  "/user/:userId/recipe/:recipeId/add-comment",
+  commentController.userAddComment
+);
+router.patch(
+  "/user/:userId/recipe/:recipeId/edit-comment/:commentId",
+  commentController.userEditComment
+);
+router.patch(
+  "/user/:userId/recipe/:recipeId/delete-comment/:commentId",
+  commentController.userDeleteComment
 );
 
 module.exports = router;
