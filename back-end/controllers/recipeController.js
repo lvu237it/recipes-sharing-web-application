@@ -1,5 +1,6 @@
 const Recipe = require('../models/recipeModel');
 
+// Get all recipes
 exports.getAllRecipes = async (req, res) => {
   try {
     const results = await Recipe.find({});
@@ -29,6 +30,28 @@ exports.getAllRecipes = async (req, res) => {
   }
 };
 
+// Get recipe by recipe id
+exports.getRecipeById = async (req, res) => {
+  try {
+    const { recipeId } = req.params;
+    const results = await Recipe.find({ _id: recipeId });
+
+    res.json({
+      message: 'success',
+      status: 200,
+      data: results,
+    });
+  } catch (error) {
+    console.log('error while getting recipes by id', error);
+    res.json({
+      message: 'error',
+      status: 404,
+      error,
+    });
+  }
+};
+
+// Create new recipe
 exports.createNewRecipe = async (req, res) => {
   try {
     const {
@@ -79,6 +102,7 @@ exports.createNewRecipe = async (req, res) => {
   }
 };
 
+// Update recipe
 exports.updateRecipe = async (req, res) => {
   try {
     // Lấy tham số từ body của request từ client và đem xử lý tại server
@@ -136,6 +160,7 @@ exports.updateRecipe = async (req, res) => {
   }
 };
 
+// Delete a recipe
 exports.deleteRecipe = async (req, res) => {
   try {
     // Lấy tham số từ request
