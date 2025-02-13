@@ -12,6 +12,7 @@ const recipeRouter = require('./routes/recipeRoutes');
 const userRouter = require('./routes/userRoutes');
 const authenticationRouter = require('./routes/authenticationRoutes');
 const adminRouter = require('./routes/adminRoutes');
+const commentRouter = require('./routes/commentRoutes');
 
 //các middleware phục vụ cho việc develop
 app.use(morgan('dev'));
@@ -23,6 +24,7 @@ app.use(cors());
 // --Định tuyến sẵn cho các request từ client với các domain như /recipes, /users
 app.use('/recipes', recipeRouter);
 app.use('/users', userRouter);
+app.use('/comments', commentRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
