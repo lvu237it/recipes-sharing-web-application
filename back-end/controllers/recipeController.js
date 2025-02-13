@@ -15,14 +15,14 @@ exports.getAllRecipes = async (req, res) => {
         .join(''),
     }));
 
-    res.json({
+    return res.json({
       message: 'success',
       status: 200,
       data: updatedResults,
     });
   } catch (error) {
     console.log('error while getting recipes', error);
-    res.json({
+    return res.json({
       message: 'error',
       status: 404,
       error,
@@ -34,16 +34,92 @@ exports.getAllRecipes = async (req, res) => {
 exports.getRecipeById = async (req, res) => {
   try {
     const { recipeId } = req.params;
-    const results = await Recipe.find({ _id: recipeId });
+    const results = await Recipe.findById(recipeId);
 
-    res.json({
+    return res.json({
       message: 'success',
       status: 200,
       data: results,
     });
   } catch (error) {
     console.log('error while getting recipes by id', error);
-    res.json({
+    return res.json({
+      message: 'error',
+      status: 404,
+      error,
+    });
+  }
+};
+
+/*
+--------------------Xử lý tìm kiếm dữ liệu nhập vào là kiểu mảng-------------------------
+Tìm món ăn có chứa ít nhất một loại trong danh sách (OR logic) → Dùng $in.
+Tìm món ăn chứa tất cả các loại bạn truyền vào (AND logic) → Dùng $all.
+Tìm món ăn có chính xác các loại bạn truyền vào, không hơn không kém → Dùng $size kết hợp với $all.
+*/
+//Get recipes by categories
+exports.findAllRecipesByCategories = async (req, res) => {
+  try {
+    const { foodCategories } = req.body;
+    if (!foodCategories || !Array.isArray(foodCategories)) {
+      return res
+        .status(400)
+        .json({ message: 'foodCategories must be an array.' });
+    }
+
+    const results = await Recipe.find({
+      foodCategories: { $all: foodCategories },
+    });
+
+    if (results.length > 0) {
+      return res.status(200).json({
+        message: 'success',
+        status: 200,
+        data: results,
+      });
+    }
+    res.status(404).json({
+      message: 'recipes not found',
+      status: 404,
+    });
+  } catch (error) {
+    console.log('error while getting recipes by categories', error);
+    return res.json({
+      message: 'error',
+      status: 404,
+      error,
+    });
+  }
+};
+
+// Get all recipes by title
+exports.findAllRecipesByTitle = async (req, res) => {
+  try {
+    const { title } = req.body;
+
+    if (!title || typeof title !== 'string') {
+      return res.status(400).json({
+        message: 'Title must be a non-empty string.',
+      });
+    }
+
+    const results = await Recipe.find({
+      title: { $regex: title, $options: 'i' }, // "i" để không phân biệt hoa/thường
+    });
+
+    if (results.length > 0) {
+      return res.status(200).json({
+        message: 'success',
+        data: results,
+      });
+    }
+    return res.status(404).json({
+      message: 'recipes not found',
+      status: 404,
+    });
+  } catch (error) {
+    console.log('error while getting recipes by title', error);
+    return res.status(404).json({
       message: 'error',
       status: 404,
       error,
@@ -87,14 +163,14 @@ exports.createNewRecipe = async (req, res) => {
     });
 
     // Trả về kết quả hiển thị dưới dạng json
-    res.json({
+    return res.status(200).json({
       message: 'success',
       status: 200,
       data: recentRecipeCreated,
     });
   } catch (error) {
     console.log('error while creating recipe', error);
-    res.json({
+    return res.status(404).json({
       message: 'error',
       status: 404,
       error,
@@ -145,14 +221,14 @@ exports.updateRecipe = async (req, res) => {
     });
 
     // Trả về kết quả hiển thị dưới dạng json
-    res.json({
+    return res.status(200).json({
       message: 'Update successful',
       status: 200,
       data: recentUpdated,
     });
   } catch (error) {
     console.log('Error while updating recipe:', error);
-    res.json({
+    return res.status(404).json({
       message: 'error',
       status: 404,
       error,
@@ -184,14 +260,14 @@ exports.deleteRecipe = async (req, res) => {
     );
 
     // Trả về kết quả hiển thị dưới dạng json
-    res.json({
+    return res.status(200).json({
       message: 'Delete successful',
       status: 200,
       data: recentDeleted,
     });
   } catch (error) {
     console.log('Error while deleting recipe:', error);
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Server error',
       status: 500,
     });

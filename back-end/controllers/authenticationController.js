@@ -1,5 +1,3 @@
-// exports.functionToSolveSomething
-
 const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -53,6 +51,7 @@ exports.registerUser = async (req, res) => {
     });
   }
 };
+
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
