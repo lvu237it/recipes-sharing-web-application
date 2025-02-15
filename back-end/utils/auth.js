@@ -1,18 +1,19 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+const User = require("../models/userModel");
 
-const authMiddleware = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized', status: 401 });
-  }
-
+exports.protect = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.id;
+    const token = req.headers.authorization?.split(" ")[1];
+    console.log("Received Token:", token);
+    if (!token) {
+      return res.status(401).json({ status: "error", message: "Unauthorized" });
+    }
+
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+
+    req.user = await User.findById(decoded.userId).select("role"); // Gán role vào req.user
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Invalid token', status: 401 });
+    res.status(401).json({ status: "error", message: error.message });
   }
 };
-
-module.exports = authMiddleware;
