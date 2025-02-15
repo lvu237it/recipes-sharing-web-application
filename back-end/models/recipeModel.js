@@ -43,7 +43,7 @@ const recipeSchema = new mongoose.Schema({
   },
   slug: {
     type: String,
-    unique: true, // Đảm bảo không trùng lặp
+    unique: true,
   },
   description: {
     type: String,
