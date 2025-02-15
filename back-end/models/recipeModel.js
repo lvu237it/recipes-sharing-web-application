@@ -6,7 +6,7 @@ const recipeSchema = new mongoose.Schema({
     type: String,
   },
   foodCategories: {
-    type: [String], // [mon xao, mon luoc] => phuc vu cho muc dich filter
+    type: [String], // vi du: [mon xao, mon luoc] => phuc vu cho muc dich filter
     enum: [
       'mon xao',
       'mon luoc',
@@ -14,6 +14,7 @@ const recipeSchema = new mongoose.Schema({
       'mon chien',
       'mon canh',
       'mon nom',
+      'mon lau',
     ],
     required: [true, 'A post needs a category!'],
   },
@@ -45,15 +46,15 @@ const recipeSchema = new mongoose.Schema({
     ref: 'User', //Tham chiếu tới collection User
     required: true,
   },
-  comments: [
-    {
-      user: {
-        type: mongoose.SchemaTypes.ObjectId,
-        ref: 'User', //Tham chiếu tới collection User
-      },
-      commentDescription: String,
-    },
-  ],
+  // comments: [
+  //   {
+  //     user: {
+  //       type: mongoose.SchemaTypes.ObjectId,
+  //       ref: 'User', //Tham chiếu tới collection User
+  //     },
+  //     commentDescription: String,
+  //   },
+  // ],
   createdAt: {
     type: Date,
     default: Date.now(),
