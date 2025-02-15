@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Playwrite+DK+Uloopet:wght@100..400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playwrite+CU:wght@100..400&display=swap');
+
+:root {
+  /* font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; */
+  /* line-height: 1.5; */
+  /* font-weight: 400; */
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+#title-header-recipe-list {
+  font-family: 'Playwrite CU', sans-serif;
+}
+
+.button-save-recipe {
+  background: white;
+  color: #528135;
+  border: 0.1px solid #528135;
+  border-radius: 20px;
+  padding: 6px 14px;
+  transition: 0.3s ease-in-out;
+}
+
+.button-show-details {
+  background: #528135;
+  color: white;
+  border: 0.1px solid gray;
+  border-radius: 20px;
+  padding: 6px 14px;
+  transition: 0.3s ease-in-out;
+}
+
+.icon-add-recipe-bi-plus-pencil:hover {
+  background: #e5e7eb;
+  transition: 0.3s ease-in-out;
+}
+
+.modal-content {
+  margin: 0 auto !important;
+  padding: 16px !important;
+}
+
+.icon-add-recipe-bi-plus-pencil {
+  position: absolute;
+  top: 0;
+  right: 10px;
+  cursor: pointer;
+  font-size: 36px;
+  border: 0.1px solid gray;
+  border-radius: 100%;
+  padding: 5px;
+}
+
+@media (max-width: 768px) {
+  .icon-add-recipe-bi-plus-pencil {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .button-hidden-add-recipe {
+    display: flex !important;
+  }
+
+  .wrapper-image-and-content {
+    grid-template-columns: 250px 1fr;
+  }
+
+  .an-image-in-recipe-list {
+    width: 250px;
+  }
+}
+
+@media (min-width: 769px) {
+  .button-hidden-add-recipe {
+    display: none !important;
+  }
+
+  .wrapper-image-and-content {
+    grid-template-columns: 300px 1fr;
+  }
+
+  .an-image-in-recipe-list {
+    width: 300px;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}

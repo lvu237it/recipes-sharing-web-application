@@ -7,6 +7,6 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 
 // Gọi tới các module xử lý request từ controller
-router.post('/create-new-user', userController.createAnUser);
+// router.post('/create-new-user', userController.createAnUser);
 
 module.exports = router;
