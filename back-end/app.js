@@ -25,6 +25,8 @@ app.use(cors());
 app.use('/recipes', recipeRouter);
 app.use('/users', userRouter);
 app.use('/comments', commentRouter);
+app.use('/authentication', authenticationRouter);
+app.use('/admin', adminRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

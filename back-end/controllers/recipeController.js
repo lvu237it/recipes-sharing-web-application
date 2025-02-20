@@ -1,9 +1,10 @@
 const Recipe = require('../models/recipeModel');
+const { options } = require('../routes/userRoutes');
 
 // Get all recipes
 exports.getAllRecipes = async (req, res) => {
   try {
-    const results = await Recipe.find({});
+    const results = await Recipe.find({ isDeleted: false });
 
     // Thay thế ký tự \n bằng thẻ <div>
     const updatedResults = results.map((recipe) => ({
@@ -34,7 +35,7 @@ exports.getAllRecipes = async (req, res) => {
 exports.getRecipeById = async (req, res) => {
   try {
     const { recipeId } = req.params;
-    const results = await Recipe.findById(recipeId);
+    const results = await Recipe.find({ _id: recipeId, isDeleted: false });
 
     return res.json({
       message: 'success',
@@ -69,6 +70,7 @@ exports.findAllRecipesByCategories = async (req, res) => {
 
     const results = await Recipe.find({
       foodCategories: { $all: foodCategories },
+      isDeleted: false,
     });
 
     if (results.length > 0) {
@@ -105,6 +107,7 @@ exports.findAllRecipesByTitle = async (req, res) => {
 
     const results = await Recipe.find({
       title: { $regex: title, $options: 'i' }, // "i" để không phân biệt hoa/thường
+      isDeleted: false,
     });
 
     if (results.length > 0) {
@@ -194,7 +197,10 @@ exports.updateRecipe = async (req, res) => {
     const { recipeId } = req.params;
 
     // Kiểm tra sự tồn tại của recipeId trong cơ sở dữ liệu
-    const existingRecipe = await Recipe.findById(recipeId);
+    const existingRecipe = await Recipe.find({
+      _id: recipeId,
+      isDeleted: false,
+    });
 
     if (!existingRecipe) {
       return res.status(404).json({
@@ -243,7 +249,10 @@ exports.deleteRecipe = async (req, res) => {
     const { recipeId } = req.params;
 
     // Kiểm tra sự tồn tại của recipeId trong cơ sở dữ liệu
-    const existingRecipe = await Recipe.findById(recipeId);
+    const existingRecipe = await Recipe.find({
+      _id: recipeId,
+      isDeleted: false,
+    });
 
     if (!existingRecipe) {
       return res.status(404).json({
