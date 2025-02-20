@@ -7,18 +7,15 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    // Cập nhật state để hiển thị giao diện dự phòng
     return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
-    // Bạn có thể ghi lại thông tin lỗi tại đây nếu cần
     console.error('Error caught by ErrorBoundary:', error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
-      // Bạn có thể render bất kỳ giao diện dự phòng nào
       return (
         <>
           <div className='flex justify-center items-center w-full h-screen'>

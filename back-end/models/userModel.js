@@ -1,18 +1,10 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 //Tạo model cho user dựa trên các phương thức có sẵn của mongoose
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: [true, "User needs an user name"],
-  },
-  email: {
-    type: String,
-    required: [true, "User needs an email"],
-  },
-  password: {
-    type: String,
-    required: [true, "User needs a password"],
+    required: true,
   },
   password: {
     type: String,
@@ -27,19 +19,10 @@ const userSchema = new mongoose.Schema({
     type: String,
   },
   avatar: String,
-  followers: {
-    type: [
-      //mảng chứa các objectId của những người followers
-      mongoose.SchemaTypes.ObjectId,
-    ],
-    ref: "User", //Tham chiếu tới collection User
-  },
-  listOfPosts: {
-    type: [
-      //mảng chứa các objectId của những bài đăng về công thức nấu ăn
-      mongoose.SchemaTypes.ObjectId,
-    ],
-    ref: "Recipe", //Tham chiếu tới collection Recipe
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user',
   },
   createdAt: {
     type: Date,
@@ -53,6 +36,6 @@ const userSchema = new mongoose.Schema({
   deletedAt: Date,
 });
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;
