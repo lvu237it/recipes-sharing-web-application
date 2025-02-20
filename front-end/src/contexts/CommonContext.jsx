@@ -56,7 +56,7 @@ export const Common = ({ children }) => {
         setRecipes(response.data.data);
       } catch (error) {
         console.error('Failed to fetch recipes:', error);
-        setRecipes([]); // Xử lý lỗi: đặt `recipes` là mảng rỗng
+        setRecipes([]);
       }
     }
     getRecipes();
