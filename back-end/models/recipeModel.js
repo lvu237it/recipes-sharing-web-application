@@ -37,6 +37,11 @@ const recipeSchema = new mongoose.Schema({
     ],
     required: [true, 'A post needs a category!'],
   },
+  status: {
+    type: String,
+    enum: ['Public', 'Private','Pending_Approval','Rejected'],
+    default: 'Pending_Approval',
+  },
   title: {
     type: String,
     required: [true, 'A post needs a title!'],
