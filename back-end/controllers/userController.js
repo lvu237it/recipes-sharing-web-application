@@ -1,4 +1,6 @@
-const User = require('../models/userModel');
+const User = require("../models/userModel");
+const mongoose = require("mongoose");
+const Recipe = require("../models/recipeModel");
 //Code demo
 // exports.createAnUser = async (req, res) => {
 //   try {
@@ -17,115 +19,170 @@ const User = require('../models/userModel');
 exports.getUserById = async (req, res) => {
   try {
     const { userId } = req.params;
-    const results = await User.findById(userId);
+    const loggedInUserId = req.user._id; // ID từ token
 
-    return res.json({
-      message: 'success',
-      status: 200,
-      data: results,
-    });
+    console.log("🔹 userId from params:", userId);
+    console.log("🔹 loggedInUserId from token:", loggedInUserId);
+
+    // Kiểm tra định dạng ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid User ID format." });
+    }
+
+    // Kiểm tra quyền truy cập
+    if (!loggedInUserId.equals(userId)) {
+      return res.status(403).json({ message: "Forbidden - You can only view your own profile." });
+    }
+
+    // Lấy thông tin user từ DB
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    res.status(200).json({ message: "success", data: user });
   } catch (error) {
-    console.log('error while getting users by id', error);
-    return res.json({
-      message: 'error',
-      status: 404,
-      error,
-    });
+    console.error("Error while getting user by ID:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // Get all recipes of an user
-const mongoose = require('mongoose');
-const Recipe = require('../models/recipeModel'); 
-
 exports.findAllRecipesByUser = async (req, res) => {
   try {
-    const { userId } = req.params; // Lấy userId từ URL
+    const { userId } = req.params;
+    const loggedInUserId = req.user._id; // Lấy ID user từ token
 
-    // Kiểm tra xem userId có đúng định dạng ObjectId không
+    console.log("🔹 userId from params:", userId);
+    console.log("🔹 loggedInUserId from token:", loggedInUserId);
+    // Kiểm tra userId hợp lệ
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        message: 'Invalid User ID format.',
-      });
+      return res.status(400).json({ message: "Invalid User ID format." });
     }
 
-    // Truy vấn danh sách công thức theo owner (userId)
-    const recipes = await Recipe.find({ owner: userId });
-
-    if (recipes.length > 0) {
-      return res.status(200).json({
-        message: 'success',
-        data: recipes,
-      });
+    // Kiểm tra quyền truy cập
+    if (userId !== loggedInUserId.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Forbidden - You can only view your own recipes." });
     }
 
-    return res.status(404).json({
-      message: 'No recipes found for this user.',
-      status: 404,
+    // Lấy page và limit từ query params, mặc định page = 1, limit = 10
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Đếm tổng số công thức
+    const totalRecipes = await Recipe.countDocuments({ owner: userId });
+
+    // Lấy danh sách công thức có phân trang
+    const recipes = await Recipe.find({ owner: userId })
+      .skip(skip)
+      .limit(limit);
+
+    // Tính tổng số trang
+    const totalPages = Math.ceil(totalRecipes / limit);
+
+    res.status(200).json({
+      message: "success",
+      currentPage: page,
+      totalPages,
+      totalRecipes,
+      data: recipes,
     });
   } catch (error) {
-    console.error('Error while getting recipes by user ID:', error);
-    return res.status(500).json({
-      message: 'Server error',
-      status: 500,
-      error: error.message,
-    });
+    console.error("Error while getting recipes by user ID:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-//Update in4 user
-exports.updateUser = async (req, res) => {
+//get detail recipes of an user
+exports.findDetail = async (req, res) => {
   try {
-    // Lấy tham số từ body của request từ client và đem xử lý tại server
-    const {
-      username,
-      email,
-      password,
-      description,
-    } = req.body;
-    const { userId } = req.params;
+    const { userId, recipeId } = req.params;
+    const loggedInUserId = req.user._id; // Lấy ID từ token
 
-    // Kiểm tra sự tồn tại của recipeId trong cơ sở dữ liệu
-    const existingUser = await User.findById(userId);
+    console.log("🔹 userId from params:", userId);
+    console.log("🔹 loggedInUserId from token:", loggedInUserId);
+    console.log("🔹 recipeId from params:", recipeId);
 
-    if (!existingUser) {
-      return res.status(404).json({
-        message: 'User not found',
-        status: 404,
-      });
+    // Kiểm tra định dạng ID hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(recipeId)) {
+      return res.status(400).json({ message: "Invalid ID format." });
     }
 
-    // Nếu tồn tại, tiếp tục cập nhật
+    // Kiểm tra quyền truy cập
+    if (!loggedInUserId.equals(userId)) {
+      return res.status(403).json({ message: "Forbidden - You can only view your own recipes." });
+    }
+
+    // Tìm công thức theo ID và kiểm tra owner
+    const recipe = await Recipe.findOne({ _id: recipeId, owner: userId });
+
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    res.status(200).json({
+      message: "success",
+      data: recipe,
+    });
+  } catch (error) {
+    console.error("Error while getting recipe details:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+//Update in4 user
+
+exports.updateUser = async (req, res) => {
+  try {
+    const { username, email, password, description, hobby, des } = req.body;
+    const { userId } = req.params;
+    const loggedInUserId = req.user._id; // Lấy ID từ token
+
+    console.log("🔹 userId from params:", userId);
+    console.log("🔹 loggedInUserId from token:", loggedInUserId);
+
+    // Kiểm tra định dạng ObjectId hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid User ID format." });
+    }
+
+    // Kiểm tra quyền cập nhật: Chỉ cho phép user cập nhật thông tin của chính mình
+    if (!loggedInUserId.equals(userId)) {
+      return res.status(403).json({ message: "Forbidden - You can only update your own profile." });
+    }
+
+    // Kiểm tra sự tồn tại của user trong DB
+    const existingUser = await User.findById(userId);
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Cập nhật dữ liệu người dùng
     const updateData = {
       username,
       email,
       password,
       description,
       updatedAt: Date.now(),
+      hobby,
+      des,
     };
 
-    // Cập nhật món ăn với các trường có dữ liệu
-    const recentUpdated = await User.findByIdAndUpdate(userId, updateData, {
-      new: true,
-    });
+    // Thực hiện cập nhật
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
 
-    // Trả về kết quả hiển thị dưới dạng json
     return res.status(200).json({
-      message: 'Update successful',
-      status: 200,
-      data: recentUpdated,
+      message: "Update successful",
+      data: updatedUser,
     });
   } catch (error) {
-    console.log('Error while updating recipe:', error);
-    return res.status(404).json({
-      message: 'error',
-      status: 404,
-      error,
-    });
+    console.error("Error while updating user:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
-
-
-
-

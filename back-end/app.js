@@ -23,8 +23,10 @@ app.use(cors());
 //routing handlers
 // --Định tuyến sẵn cho các request từ client với các domain như /recipes, /users
 app.use('/recipes', recipeRouter);
-app.use('/users', userRouter);
+app.use('/users', userRouter);  
 app.use('/comments', commentRouter);
+app.use('/authentication', authenticationRouter);
+app.use("/admin", adminRouter);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
