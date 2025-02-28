@@ -1,5 +1,4 @@
 const Recipe = require('../models/recipeModel');
-const { options } = require('../routes/userRoutes');
 
 // Get all recipes
 exports.getAllRecipes = async (req, res) => {
