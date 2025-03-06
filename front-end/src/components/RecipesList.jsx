@@ -27,9 +27,6 @@ function RecipesList() {
   // Modal for creating new recipe
   const [showCreateRecipeModal, setShowCreateRecipeModal] = useState(false);
   useState(false);
-  // Modal for missing input fields
-  const [showMissingFieldsCreateRecipe, setShowMissingFieldsCreateRecipe] =
-    useState(false);
 
   // Details for creating new recipe
   const [inputFoodCategory, setInputFoodCategory] = useState('');
@@ -112,21 +109,10 @@ function RecipesList() {
       stepsListForNewRecipe.length === 0 ||
       imageRecipe === null
     ) {
-      // setShowMissingFieldsCreateRecipe(true);
-      // toast('Event has been created', {
-      //   action: {
-      //     label: 'Undo',
-      //     onClick: () => console.log('Undo'),
-      //   },
-      // });
-      // toast.warning('Event start time cannot be earlier than 8am');
-
       toast.warning(
         <>
-          {/* <div style={{ fontSize: 16 }}>Thất bại!</div> */}
-          <div className=''>Bạn chưa điền đầy đủ các thông tin cần thiết!</div>
+          <div className=''>Hãy bổ sung đầy đủ các thông tin cần thiết!</div>
         </>
-        // { icon: <HiMiniBellAlert size={20} /> }
       );
       return;
     }
@@ -676,42 +662,6 @@ function RecipesList() {
               </Button>
             </Modal.Footer>
           </Modal>
-
-          {/* Modal for notification when fields is missed*/}
-          {/* <Modal
-            centered
-            style={{
-              width: '99%',
-            }}
-            show={showMissingFieldsCreateRecipe}
-            onHide={() => setShowMissingFieldsCreateRecipe(false)}
-          >
-            <div
-              className=''
-              style={{
-                backgroundColor: '#FFDEAD',
-                borderRadius: '6px',
-              }}
-            >
-              <Modal.Header closeButton>
-                <Modal.Title>
-                  Bạn chưa điền đầy đủ các thông tin cần thiết!
-                </Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                Hãy kiểm tra lại các nội dung còn thiếu và chia sẻ công thức này
-                tới mọi người, bạn nhé.
-              </Modal.Body>
-              <Modal.Footer>
-                <Button
-                  variant='secondary'
-                  onClick={() => setShowMissingFieldsCreateRecipe(false)}
-                >
-                  Đóng
-                </Button>
-              </Modal.Footer>
-            </div>
-          </Modal> */}
 
           {recipes.length === 0 ? (
             // Loading recipes
