@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useMediaQuery } from 'react-responsive';
+import { Toaster, toast } from 'sonner';
 
 const CommonContext = createContext();
 
@@ -74,6 +75,8 @@ export const Common = ({ children }) => {
         listOfCategories,
         sortOrder,
         setSortOrder,
+        Toaster,
+        toast,
       }}
     >
       {children}

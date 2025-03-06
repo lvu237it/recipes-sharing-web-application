@@ -1,4 +1,5 @@
 const Recipe = require('../models/recipeModel');
+const AppError = require('../utils/appError');
 
 // Get all recipes
 exports.getAllRecipes = async (req, res) => {
@@ -48,6 +49,36 @@ exports.getRecipeById = async (req, res) => {
       status: 404,
       error,
     });
+  }
+};
+
+//Check if recipe is exist or not
+exports.checkIfRecipeIsExist = async (req, res, next) => {
+  const { recipeId } = req.params;
+  const { recipe_id } = req.body;
+
+  // Kiểm tra xem recipeId hoặc recipe_id có tồn tại không
+  if (recipeId) {
+    const result = await Recipe.findById(recipeId);
+
+    if (!result) {
+      return next(new AppError('No recipe found', 404));
+    }
+
+    req.recipe = recipeId;
+    next();
+  } else if (recipe_id) {
+    const result = await Recipe.findById(recipe_id);
+
+    // Kiểm tra xem result có tồn tại không
+    if (!result) {
+      return next(new AppError('No recipe found', 404));
+    }
+
+    req.recipe = recipe_id;
+    next();
+  } else {
+    return next(new AppError('No recipe found', 404));
   }
 };
 

@@ -7,6 +7,7 @@ import { Dropdown } from 'react-bootstrap';
 import { Modal } from 'react-bootstrap';
 import { BiPencil, BiImageAdd } from 'react-icons/bi';
 import axios from 'axios';
+import { HiMiniBellAlert } from 'react-icons/hi2';
 
 function RecipesList() {
   const {
@@ -19,12 +20,13 @@ function RecipesList() {
     listOfCategories,
     sortOrder,
     setSortOrder,
+    Toaster,
+    toast,
   } = useCommon();
 
   // Modal for creating new recipe
   const [showCreateRecipeModal, setShowCreateRecipeModal] = useState(false);
-  const [showSuccessfulCreateRecipeModal, setShowSuccessfulCreateRecipeModal] =
-    useState(false);
+  useState(false);
   // Modal for missing input fields
   const [showMissingFieldsCreateRecipe, setShowMissingFieldsCreateRecipe] =
     useState(false);
@@ -127,6 +129,8 @@ function RecipesList() {
     formData.append('sources', JSON.stringify(sourcesListForNewRecipe));
 
     try {
+      setShowCreateRecipeModal(false);
+
       // Upload ảnh trực tiếp lên Cloudinary
       const uploadResponse = await uploadImageToCloudinary(imageRecipe);
       if (uploadResponse) {
@@ -148,8 +152,22 @@ function RecipesList() {
       if (response.status === 200) {
         setRecipes((preRecipes) => [response.data.data, ...preRecipes]);
         console.log('Create recipe post successfully!');
-        setShowCreateRecipeModal(false);
-        setShowSuccessfulCreateRecipeModal(true);
+
+        const promise = () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () => resolve({ name: 'my-toast-creating-recipe' }),
+              2000
+            )
+          );
+
+        toast.promise(promise, {
+          loading: 'Vui lòng chờ quá trình tải lên hoàn tất...',
+          success: () => {
+            return `Tạo công thức mới thành công!`;
+          },
+          error: 'Đã có lỗi xảy ra trong quá trình tải lên.',
+        });
       } else {
         console.log('Create recipe post failed!');
       }
@@ -199,12 +217,13 @@ function RecipesList() {
 
   return (
     <>
+      <Toaster richColors />
       <div className='' style={{ position: 'relative' }}>
         <div
           className='wrapper-recipes'
           style={{ width: '90%', margin: 'auto' }}
         >
-          <Row className='wrapper-header-recipes-list'>
+          <Row className='wrapper-header-recipes-list mb-3'>
             <Col
               lg={3}
               md={3}
@@ -272,15 +291,6 @@ function RecipesList() {
                 </Dropdown.Menu>
               </Dropdown>
             </Col>
-          </Row>
-          <Row className='button-hidden-add-recipe justify-content-center mt-2 mb-3'>
-            <Button
-              onClick={() => setShowCreateRecipeModal(true)}
-              style={{ width: '160px' }}
-              variant='success'
-            >
-              Chia sẻ công thức
-            </Button>
           </Row>
 
           <BiPencil
@@ -652,28 +662,6 @@ function RecipesList() {
             </Modal.Footer>
           </Modal>
 
-          {/* Modal for notification when successfully creating new recipe */}
-          <Modal
-            show={showSuccessfulCreateRecipeModal}
-            onHide={() => setShowSuccessfulCreateRecipeModal(false)}
-          >
-            <Modal.Header>
-              <Modal.Title>Chia sẻ công thức nấu ăn thành công!</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              Cảm ơn bạn vì đã chia sẻ công thức nấu ăn tuyệt vời này! Chúc bạn
-              sẽ nấu được thật nhiều món ngon mà mình mong muốn!
-            </Modal.Body>
-            <Modal.Footer>
-              <Button
-                variant='secondary'
-                onClick={() => setShowSuccessfulCreateRecipeModal(false)}
-              >
-                Đóng
-              </Button>
-            </Modal.Footer>
-          </Modal>
-
           {/* Modal for notification when fields is missed*/}
           <Modal
             centered
@@ -743,6 +731,7 @@ function RecipesList() {
                         margin: 'auto',
                         border: '0.1px solid whitesmoke',
                         backgroundColor: 'white',
+                        maxWidth: '100%',
                       }}
                     />
                     <div
@@ -774,7 +763,30 @@ function RecipesList() {
                           gap: '10px',
                         }}
                       >
-                        <button className='button-save-recipe'>
+                        <button
+                          onClick={
+                            () =>
+                              toast.success(
+                                <>
+                                  <div style={{ fontSize: 16 }}>
+                                    Thành công!
+                                  </div>
+                                  <div className=''>
+                                    Đã lưu công thức vào danh sách yêu thích.
+                                  </div>
+                                </>,
+                                { icon: <HiMiniBellAlert size={20} /> }
+                              )
+                            // toast('Event has been created', {
+                            //   action: {
+                            //     label: 'Undo',
+                            //     onClick: () => console.log('Undo'),
+                            //   },
+                            // })
+                            // toast.warning('Event start time cannot be earlier than 8am')
+                          }
+                          className='button-save-recipe'
+                        >
                           Lưu công thức
                         </button>
 
