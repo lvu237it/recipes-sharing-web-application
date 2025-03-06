@@ -7,6 +7,8 @@ function RecipeDetail() {
   const { recipeNameSlug } = useParams();
   const { recipes } = useCommon();
   const [recipeViewDetails, setRecipeViewDetails] = useState(null);
+  const [openImageRecipeDetailModal, setOpenImageRecipeDetailModal] =
+    useState(false);
 
   useEffect(() => {
     if (recipeNameSlug) {
@@ -21,7 +23,27 @@ function RecipeDetail() {
 
   return (
     <>
-      <div className='view-recipe-details-wrapper'>
+      {openImageRecipeDetailModal && (
+        <div
+          className='background-black-open-image'
+          onClick={(e) => {
+            if (e.target.classList.contains('background-black-open-image')) {
+              setOpenImageRecipeDetailModal(false);
+            }
+          }}
+        >
+          <Image
+            className='image-recipe-detail-open rounded'
+            src={recipeViewDetails?.imageUrl}
+            style={{
+              width: '500px',
+              boxShadow: '0px 4px 15px rgba(255, 255, 255, 0.15)',
+            }}
+          />
+        </div>
+      )}
+
+      <div className='view-recipe-details-wrapper m-4'>
         <div
           className='recipe-details-image-and-description gap-2'
           style={{
@@ -35,11 +57,10 @@ function RecipeDetail() {
             style={{
               width: '400px',
               margin: 'auto',
-              padding: '10px',
-              border: '0.1px solid whitesmoke',
-              backgroundColor: 'white',
+              borderRadius: '5px',
             }}
-            className='recipe-details-image shadow'
+            className='recipe-details-image-on-top shadow p-2'
+            onClick={() => setOpenImageRecipeDetailModal(true)}
           />
           <div
             className='recipe-details-description'

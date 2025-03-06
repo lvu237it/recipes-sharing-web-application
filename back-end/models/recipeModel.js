@@ -1,12 +1,11 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const recipeSchema = new mongoose.Schema({
-  //--------mon xao---------
   imageUrl: {
     type: String,
   },
   foodCategories: {
-    type: [String], // vi du: [mon xao, mon luoc] => phuc vu cho muc dich filter
+    type: [String],
     enum: [
       'món xào',
       'món luộc',
@@ -70,7 +69,7 @@ const recipeSchema = new mongoose.Schema({
   },
   owner: {
     type: mongoose.SchemaTypes.ObjectId,
-    ref: 'User', //Tham chiếu tới collection User
+    ref: 'User',
     required: true,
   },
   sources: {

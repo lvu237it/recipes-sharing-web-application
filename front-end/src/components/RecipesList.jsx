@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useDebounce } from 'use-debounce';
 import { Button, Image, Form, InputGroup, Col, Row } from 'react-bootstrap';
 import { useCommon } from '../contexts/CommonContext';
 import { Link } from 'react-router-dom';
@@ -44,22 +45,48 @@ function RecipesList() {
   const [inputSource, setInputSource] = useState('');
   const [sourcesListForNewRecipe, setSourcesListForNewRecipe] = useState([]);
 
-  useEffect(() => {
-    let updatedRecipes =
-      selectedCategory === 'all'
-        ? [...recipes]
-        : recipes.filter((recipe) =>
-            recipe.foodCategories.includes(selectedCategory)
-          );
+  // Searching recipe by recipe name or ingredients
+  const [searchRecipeInput, setSearchRecipeInput] = useState('');
+  // Thêm hook debounce
+  const [debouncedSearchTerm] = useDebounce(searchRecipeInput, 300);
 
-    if (sortOrder === 'latest') {
-      updatedRecipes.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    } else if (sortOrder === 'oldest') {
-      updatedRecipes.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const filterRecipesResultFinal = useMemo(() => {
+    let updatedRecipes = [...recipes];
+
+    // 1. Category filter
+    if (selectedCategory !== 'all') {
+      updatedRecipes = updatedRecipes.filter((recipe) =>
+        recipe.foodCategories.includes(selectedCategory)
+      );
     }
 
-    setFilteredRecipes(updatedRecipes);
-  }, [selectedCategory, recipes, sortOrder]);
+    // 2. Sorting
+    const sorted = [...updatedRecipes];
+    if (sortOrder === 'latest') {
+      sorted.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    } else if (sortOrder === 'oldest') {
+      sorted.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    }
+    updatedRecipes = sorted;
+
+    // 3. Search
+    if (debouncedSearchTerm.trim()) {
+      const searchTerm = debouncedSearchTerm.toLowerCase().trim();
+      updatedRecipes = updatedRecipes.filter((recipe) => {
+        const titleMatch = recipe.title.toLowerCase().includes(searchTerm);
+        const ingredientMatch = recipe.ingredients.some((ingredient) =>
+          ingredient.toLowerCase().includes(searchTerm)
+        );
+        return titleMatch || ingredientMatch;
+      });
+    }
+
+    return updatedRecipes;
+  }, [selectedCategory, sortOrder, debouncedSearchTerm, recipes]);
+
+  useEffect(() => {
+    setFilteredRecipes(filterRecipesResultFinal);
+  }, [filterRecipesResultFinal, setFilteredRecipes]);
 
   const handleCancelCreateRecipe = () => {
     setShowCreateRecipeModal(false);
@@ -179,6 +206,7 @@ function RecipesList() {
         >
           <Row className='wrapper-header-recipes-list'>
             <Col
+              lg={3}
               md={3}
               id='title-header-recipe-list'
               className='text-center mb-4'
@@ -188,8 +216,24 @@ function RecipesList() {
             </Col>
 
             <Col
-              md={9}
-              className='d-flex flex-column flex-md-row gap-2 justify-content-md-end justify-content-center align-items-center'
+              lg={4}
+              md={3}
+              className='search-input-recipe-name d-flex justify-content-center align-items-center mb-3 mb-md-0'
+            >
+              <Form.Control
+                type='text'
+                id='search-input-recipe-name-id'
+                placeholder='Nhập tên món hoặc nguyên liệu'
+                className='w-75 w-md-100'
+                value={searchRecipeInput}
+                onChange={(e) => setSearchRecipeInput(e.target.value)}
+              />
+            </Col>
+
+            <Col
+              lg={5}
+              md={6}
+              className='d-flex flex-column flex-lg-row gap-2 justify-content-lg-end justify-content-center align-items-center'
             >
               <Dropdown>
                 <Dropdown.Toggle variant='success'>
@@ -238,6 +282,7 @@ function RecipesList() {
               Chia sẻ công thức
             </Button>
           </Row>
+
           <BiPencil
             title='Chia sẻ công thức'
             onClick={() => setShowCreateRecipeModal(true)}
@@ -666,20 +711,27 @@ function RecipesList() {
           </Modal>
 
           {recipes.length === 0 ? (
+            // Loading recipes
             <div className=''>Đang tải công thức...</div>
           ) : filteredRecipes.length === 0 && selectedCategory !== 'all' ? (
+            // Not found recipes with selected category
             <div className=''>Không tìm thấy {selectedCategory} phù hợp</div>
+          ) : filteredRecipes.length === 0 && searchRecipeInput !== '' ? (
+            // Not found recipes with search input
+            <div className=''>
+              Không tìm thấy công thức hoặc nguyên liệu nào trùng với "
+              {searchRecipeInput}"
+            </div>
           ) : (
             <div
               className='recipe-list-wrapper-border'
               style={{
-                // border: '0.2px solid gray',
                 borderRadius: '10px',
                 backgroundColor: '#fdf7f4',
               }}
             >
               {filteredRecipes.map((recipe) => (
-                <div className='p-3'>
+                <div className='p-4'>
                   <div
                     key={recipe._id}
                     className='wrapper-image-and-content d-md-grid d-flex flex-column gap-3'
@@ -711,7 +763,9 @@ function RecipesList() {
                       <div
                         className='recipe-description'
                         style={{ margin: '10px 0', fontSize: 14 }}
-                        dangerouslySetInnerHTML={{ __html: recipe.description }}
+                        dangerouslySetInnerHTML={{
+                          __html: recipe.description,
+                        }}
                       ></div>
                       <div
                         className='recipe-actions d-flex gap-2 justify-content-md-end justify-content-center'
