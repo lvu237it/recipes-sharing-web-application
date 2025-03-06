@@ -112,7 +112,22 @@ function RecipesList() {
       stepsListForNewRecipe.length === 0 ||
       imageRecipe === null
     ) {
-      setShowMissingFieldsCreateRecipe(true);
+      // setShowMissingFieldsCreateRecipe(true);
+      // toast('Event has been created', {
+      //   action: {
+      //     label: 'Undo',
+      //     onClick: () => console.log('Undo'),
+      //   },
+      // });
+      // toast.warning('Event start time cannot be earlier than 8am');
+
+      toast.warning(
+        <>
+          {/* <div style={{ fontSize: 16 }}>Thất bại!</div> */}
+          <div className=''>Bạn chưa điền đầy đủ các thông tin cần thiết!</div>
+        </>
+        // { icon: <HiMiniBellAlert size={20} /> }
+      );
       return;
     }
 
@@ -663,7 +678,7 @@ function RecipesList() {
           </Modal>
 
           {/* Modal for notification when fields is missed*/}
-          <Modal
+          {/* <Modal
             centered
             style={{
               width: '99%',
@@ -696,7 +711,7 @@ function RecipesList() {
                 </Button>
               </Modal.Footer>
             </div>
-          </Modal>
+          </Modal> */}
 
           {recipes.length === 0 ? (
             // Loading recipes
@@ -764,26 +779,16 @@ function RecipesList() {
                         }}
                       >
                         <button
-                          onClick={
-                            () =>
-                              toast.success(
-                                <>
-                                  <div style={{ fontSize: 16 }}>
-                                    Thành công!
-                                  </div>
-                                  <div className=''>
-                                    Đã lưu công thức vào danh sách yêu thích.
-                                  </div>
-                                </>,
-                                { icon: <HiMiniBellAlert size={20} /> }
-                              )
-                            // toast('Event has been created', {
-                            //   action: {
-                            //     label: 'Undo',
-                            //     onClick: () => console.log('Undo'),
-                            //   },
-                            // })
-                            // toast.warning('Event start time cannot be earlier than 8am')
+                          onClick={() =>
+                            toast.success(
+                              <>
+                                <div style={{ fontSize: 16 }}>Thành công!</div>
+                                <div className=''>
+                                  Đã lưu công thức vào danh sách yêu thích.
+                                </div>
+                              </>,
+                              { icon: <HiMiniBellAlert size={20} /> }
+                            )
                           }
                           className='button-save-recipe'
                         >
