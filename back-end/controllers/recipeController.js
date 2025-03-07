@@ -275,8 +275,7 @@ exports.updateRecipe = async (req, res) => {
 // Delete a recipe
 exports.deleteRecipe = async (req, res) => {
   try {
-    // Lấy tham số từ request
-    const { recipeId } = req.params;
+    const recipeId = req.recipe;
 
     // Kiểm tra sự tồn tại của recipeId trong cơ sở dữ liệu
     const existingRecipe = await Recipe.find({

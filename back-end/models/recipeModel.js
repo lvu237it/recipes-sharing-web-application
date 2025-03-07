@@ -38,7 +38,7 @@ const recipeSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Public', 'Private','Pending_Approval','Rejected'],
+    enum: ['Public', 'Private', 'Pending_Approval', 'Rejected'],
     default: 'Pending_Approval',
   },
   title: {

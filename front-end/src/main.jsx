@@ -6,14 +6,19 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { BrowserRouter } from 'react-router-dom';
 import { Common } from './contexts/CommonContext.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import { QueryClient, QueryClientProvider } from 'react-query';
+
+const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
-        <Common>
-          <App />
-        </Common>
+        <QueryClientProvider client={queryClient}>
+          <Common>
+            <App />
+          </Common>
+        </QueryClientProvider>
       </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>

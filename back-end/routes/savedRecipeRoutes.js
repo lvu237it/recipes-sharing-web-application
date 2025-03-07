@@ -14,5 +14,11 @@ router.post(
   recipeController.checkIfRecipeIsExist,
   savedRecipeController.saveRecipeToFavoriteList
 );
+router.delete(
+  '/unsave-from-favorite-list/:recipeId',
+  recipeController.checkIfRecipeIsExist,
+  savedRecipeController.unsaveRecipeFromFavoriteList
+);
+router.post('/check-is-saved', savedRecipeController.checkARecipeIsSaved);
 
 module.exports = router;

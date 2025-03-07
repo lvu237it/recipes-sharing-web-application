@@ -67,6 +67,74 @@ exports.saveRecipeToFavoriteList = async (req, res, next) => {
   }
 };
 
+exports.unsaveRecipeFromFavoriteList = async (req, res, next) => {
+  try {
+    const recipeId = req.recipe;
+    const { saverId } = req.body; // Lấy saverId từ body
+
+    if (!recipeId || !saverId) {
+      return next(new AppError('Missing recipeId or saverId', 400));
+    }
+
+    // Xóa bản ghi đã save
+    const deletedSavedRecipe = await SavedRecipe.findOneAndDelete({
+      recipe: recipeId,
+      saver: saverId,
+    });
+
+    if (!deletedSavedRecipe) {
+      return next(new AppError('Recipe not found in your favorite list', 404));
+    }
+
+    // Trả về kết quả
+    return res.status(200).json({
+      status: 'success',
+      message: 'Recipe unsaved successfully!',
+    });
+  } catch (error) {
+    console.error('Error unsaving recipe:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to unsave recipe.',
+    });
+  }
+};
+
+exports.checkARecipeIsSaved = async (req, res, next) => {
+  try {
+    const { recipeId, saverId } = req.body;
+
+    // Validate input
+    if (!recipeId || !saverId) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Thiếu tham số recipeId hoặc saverId',
+      });
+    }
+
+    // Kiểm tra trong database
+    const savedRecipe = await SavedRecipe.findOne({
+      recipe: recipeId,
+      saver: saverId,
+    });
+
+    res.status(200).json({
+      status: 'success',
+      isSaved: !!savedRecipe,
+      data: {
+        exists: !!savedRecipe,
+      },
+    });
+  } catch (error) {
+    console.error('Lỗi khi kiểm tra trạng thái lưu:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Lỗi server nội bộ',
+      error: process.env.NODE_ENV === 'development' ? error : undefined,
+    });
+  }
+};
+
 exports.getAllSavedRecipes = async (req, res, next) => {
   try {
     const results = await SavedRecipe.find({

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigation, useParams } from 'react-router-dom';
 import { useCommon } from '../contexts/CommonContext';
 import { Image, Table } from 'react-bootstrap';
 import { RiArrowGoBackLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 import { PiDotsThreeOutlineVerticalThin } from 'react-icons/pi';
+import axios from 'axios';
 
 import {
   BiArrowBack,
@@ -21,7 +22,18 @@ import { AiOutlineComment } from 'react-icons/ai';
 
 function RecipeDetail() {
   const { recipeNameSlug } = useParams();
-  const { recipes } = useCommon();
+  const {
+    recipes,
+    setRecipes,
+    Toaster,
+    toast,
+    navigate,
+    handleSaveRecipe,
+    handleUnsaveRecipe,
+    handleSaveToggle,
+    savedRecipeIds,
+  } = useCommon();
+
   const [recipeViewDetails, setRecipeViewDetails] = useState(null);
   const [openImageRecipeDetailModal, setOpenImageRecipeDetailModal] =
     useState(false);
@@ -77,8 +89,75 @@ function RecipeDetail() {
     };
   }, []);
 
+  //Xoá công thức
+  const handleDeleteRecipe = async (recipeId) => {
+    try {
+      const response = await axios.patch(
+        `http://localhost:3000/recipes/delete-recipe/${recipeId}`
+      );
+
+      if (response.status === 200) {
+        console.log('Delete recipe successfully!');
+        const promise = () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () => resolve({ name: 'my-toast-deleting-recipe' }),
+              2000
+            )
+          );
+
+        toast.promise(promise, {
+          loading: 'Vui lòng chờ...',
+          success: () => {
+            //Đặt lại recipes list
+            setRecipes((prevRecipes) =>
+              prevRecipes.filter((recipe) => recipe._id !== recipeId)
+            );
+            // Thêm setTimeout để chuyển hướng sau 2 giây
+            setTimeout(() => {
+              navigate('/recipe-list'); // Chuyển hướng đến trang danh sách công thức
+            }, 1000);
+
+            return `Xoá công thức thành công!`;
+          },
+          error: 'Đã có lỗi xảy ra. Vui lòng thử lại.',
+        });
+
+        // toast.success('');
+      }
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+      toast.error('Có lỗi xảy ra khi xóa công thức! Vui lòng thử lại.');
+    }
+  };
+
+  // useEffect(() => {
+  //   const fetchRecipe = async () => {
+  //     const response = await axios.get(
+  //       `http://localhost:3000/recipes/${recipeViewDetails._id}`
+  //     );
+  //     setRecipeViewDetails(response.data);
+
+  //     // Kiểm tra lại trạng thái saved với server
+  //     const savedResponse = await axios.post('/check-is-saved', {
+  //       recipeId: recipeViewDetails._id,
+  //       saverId: '67bf0492b8e677402c59129c',
+  //     });
+
+  //     if (
+  //       savedResponse.data.isSaved !==
+  //       savedRecipeIds.includes(recipeViewDetails._id)
+  //     ) {
+  //       handleSaveToggle(recipeViewDetails._id); // Đồng bộ hóa nếu có sai lệch
+  //     }
+  //   };
+
+  //   fetchRecipe();
+  // }, [recipeViewDetails._id]);
+
   return (
     <>
+      <Toaster richColors />
       {openImageRecipeDetailModal && (
         <div
           className='background-black-open-image'
@@ -158,21 +237,19 @@ function RecipeDetail() {
                         display: 'grid',
                         gridTemplateColumns: '120px 1fr',
                       }}
+                      onClick={() => handleSaveToggle(recipeViewDetails?._id)}
                     >
-                      <div className=''>Lưu công thức</div>
-                      <BiBookmark style={{ margin: 'auto' }} />
+                      <div>
+                        {savedRecipeIds.includes(recipeViewDetails?._id)
+                          ? 'Bỏ lưu'
+                          : 'Lưu công thức'}
+                      </div>
+                      {savedRecipeIds.includes(recipeViewDetails?._id) ? (
+                        <BiBookmarkMinus style={{ margin: 'auto' }} />
+                      ) : (
+                        <BiBookmark style={{ margin: 'auto' }} />
+                      )}
                     </div>
-
-                    {/* <div
-                    className='p-2 options-modal-detail'
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '120px 1fr',
-                    }}
-                  >
-                    <div className=''>Bỏ lưu</div>
-                    <BiBookmarkMinus style={{ margin: 'auto' }} />
-                  </div> */}
 
                     <div
                       className='p-2 options-modal-detail'
@@ -203,6 +280,7 @@ function RecipeDetail() {
                         gridTemplateColumns: '120px 1fr',
                         color: 'red',
                       }}
+                      onClick={() => handleDeleteRecipe(recipeViewDetails?._id)}
                     >
                       <div className=''>Xoá công thức</div>
                       <BiTrashAlt style={{ margin: 'auto' }} />

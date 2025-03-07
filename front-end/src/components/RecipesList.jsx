@@ -22,6 +22,11 @@ function RecipesList() {
     setSortOrder,
     Toaster,
     toast,
+    handleSaveRecipe,
+    handleUnsaveRecipe,
+    handleSaveToggle,
+    savedRecipeIds,
+    setSavedRecipeIds,
   } = useCommon();
 
   // Modal for creating new recipe
@@ -683,78 +688,95 @@ function RecipesList() {
                 backgroundColor: '#fdf7f4',
               }}
             >
-              {filteredRecipes.map((recipe) => (
-                <div className='p-4'>
-                  <div
-                    key={recipe._id}
-                    className='wrapper-image-and-content d-md-grid d-flex flex-column gap-3'
-                  >
-                    <Image
-                      className='an-image-in-recipe-list p-2 shadow'
-                      src={recipe.imageUrl}
-                      style={{
-                        margin: 'auto',
-                        border: '0.1px solid whitesmoke',
-                        backgroundColor: 'white',
-                        maxWidth: '100%',
-                      }}
-                    />
-                    <div
-                      className='wrapper-content-recipe'
-                      style={{ margin: '0px 15px' }}
-                    >
-                      <div
-                        className='recipe-title text-center text-md-start'
-                        style={{
-                          fontWeight: 'bolder',
-                          color: '#528135',
-                          textTransform: 'uppercase',
-                          fontSize: 32,
-                        }}
-                      >
-                        {recipe.title}
-                      </div>
-                      <div
-                        className='recipe-description'
-                        style={{ margin: '10px 0', fontSize: 14 }}
-                        dangerouslySetInnerHTML={{
-                          __html: recipe.description,
-                        }}
-                      ></div>
-                      <div
-                        className='recipe-actions d-flex gap-2 justify-content-md-end justify-content-center'
-                        style={{
-                          justifyContent: 'end',
-                          gap: '10px',
-                        }}
-                      >
-                        <button
-                          onClick={() =>
-                            toast.success(
-                              <>
-                                <div style={{ fontSize: 16 }}>Thành công!</div>
-                                <div className=''>
-                                  Đã lưu công thức vào danh sách yêu thích.
-                                </div>
-                              </>,
-                              { icon: <HiMiniBellAlert size={20} /> }
-                            )
-                          }
-                          className='button-save-recipe'
-                        >
-                          Lưu công thức
-                        </button>
+              {filteredRecipes.map((recipe) => {
+                const isSaved = savedRecipeIds.includes(recipe._id);
 
-                        <Link to={`/recipe-details/${recipe.slug}`}>
-                          <button className='button-show-details'>
-                            Xem chi tiết
+                return (
+                  <div className='p-4'>
+                    <div
+                      key={recipe._id}
+                      className='wrapper-image-and-content d-md-grid d-flex flex-column gap-3'
+                    >
+                      <Image
+                        className='an-image-in-recipe-list p-2 shadow'
+                        src={recipe.imageUrl}
+                        style={{
+                          margin: 'auto',
+                          border: '0.1px solid whitesmoke',
+                          backgroundColor: 'white',
+                          maxWidth: '100%',
+                        }}
+                      />
+                      <div
+                        className='wrapper-content-recipe'
+                        style={{ margin: '0px 15px' }}
+                      >
+                        <div
+                          className='recipe-title text-center text-md-start'
+                          style={{
+                            fontWeight: 'bolder',
+                            color: '#528135',
+                            textTransform: 'uppercase',
+                            fontSize: 32,
+                          }}
+                        >
+                          {recipe.title}
+                        </div>
+                        <div
+                          className='recipe-description'
+                          style={{ margin: '10px 0', fontSize: 14 }}
+                          dangerouslySetInnerHTML={{
+                            __html: recipe.description,
+                          }}
+                        ></div>
+                        <div
+                          className='recipe-actions d-flex gap-2 justify-content-md-end justify-content-center'
+                          style={{
+                            justifyContent: 'end',
+                            gap: '10px',
+                          }}
+                        >
+                          {/* <button
+                            onClick={() => handleSaveRecipe(recipe._id)}
+                            className='button-save-recipe'
+                          >
+                            Lưu công thức
                           </button>
-                        </Link>
+                          <button
+                            onClick={() => handleUnsaveRecipe(recipe._id)}
+                            className='button-save-recipe'
+                          >
+                            Bỏ lưu
+                          </button> */}
+                          {/* <button
+                            onClick={() => handleSaveToggle(recipe._id)}
+                            className={`save-toggle-btn button-save-unsave-recipe ${
+                              isSaved ? 'unsave' : 'save'
+                            }`}
+                          >
+                            {isSaved ? 'Bỏ lưu' : 'Lưu công thức'}
+                          </button> */}
+
+                          <button
+                            className='button-save-unsave-recipe'
+                            onClick={() => handleSaveToggle(recipe._id)}
+                          >
+                            {savedRecipeIds.includes(recipe._id)
+                              ? 'Bỏ lưu'
+                              : 'Lưu công thức'}
+                          </button>
+
+                          <Link to={`/recipe-details/${recipe.slug}`}>
+                            <button className='button-show-details'>
+                              Xem chi tiết
+                            </button>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
