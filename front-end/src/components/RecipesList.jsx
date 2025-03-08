@@ -159,28 +159,19 @@ function RecipesList() {
         }
       );
 
-      if (response.status === 200) {
-        setRecipes((preRecipes) => [response.data.data, ...preRecipes]);
-        console.log('Create recipe post successfully!');
+      const promise = () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ name: 'my-toast-creating-recipe' }), 2000)
+        );
 
-        const promise = () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () => resolve({ name: 'my-toast-creating-recipe' }),
-              2000
-            )
-          );
+      toast.promise(promise, {
+        loading: 'Vui lòng chờ quá trình tải lên hoàn tất...',
 
-        toast.promise(promise, {
-          loading: 'Vui lòng chờ quá trình tải lên hoàn tất...',
-          success: () => {
-            return `Tạo công thức mới thành công!`;
-          },
-          error: 'Đã có lỗi xảy ra trong quá trình tải lên.',
-        });
-      } else {
-        console.log('Create recipe post failed!');
-      }
+        success: () => {
+          return `Tạo công thức mới thành công!`;
+        },
+        error: 'Đã có lỗi xảy ra trong quá trình tải lên.',
+      });
     } catch (error) {
       console.error('Error uploading image to Cloudinary:', error);
     }
