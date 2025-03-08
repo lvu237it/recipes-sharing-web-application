@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const crypto = require('crypto')
 //Tạo model cho user dựa trên các phương thức có sẵn của mongoose
 const userSchema = new mongoose.Schema({
