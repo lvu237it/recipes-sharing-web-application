@@ -184,7 +184,7 @@ function RecipesList() {
               className='text-center mb-4'
               style={{ fontSize: 26 }}
             >
-              Các công thức nấu ăn từ cộng đồng
+              Các công thức nấu ăn từ cộng đồng LGBT
             </Col>
 
             <Col
