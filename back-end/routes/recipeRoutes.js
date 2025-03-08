@@ -15,6 +15,10 @@ router.post(
 router.post('/recipes-by-title', recipeController.findAllRecipesByTitle);
 router.post('/create-new-recipe', recipeController.createNewRecipe);
 router.patch('/update-recipe/:recipeId', recipeController.updateRecipe);
-router.patch('/delete-recipe/:recipeId', recipeController.deleteRecipe);
+router.patch(
+  '/delete-recipe/:recipeId',
+  recipeController.checkIfRecipeIsExist,
+  recipeController.deleteRecipe
+);
 
 module.exports = router;

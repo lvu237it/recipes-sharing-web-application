@@ -1,24 +1,30 @@
 const Recipe = require('../models/recipeModel');
+const AppError = require('../utils/appError');
 
 // Get all recipes
 exports.getAllRecipes = async (req, res) => {
   try {
-    const results = await Recipe.find({ isDeleted: false });
+    const { limit = 10, cursor = null } = req.query; // Thêm tham số limit và cursor
+    const skip = cursor ? parseInt(cursor) : 0;
 
-    // Thay thế ký tự \n bằng thẻ <div>
-    const updatedResults = results.map((recipe) => ({
-      ...recipe._doc,
-      description: recipe.description
-        .replace(/'/g, '"')
-        .split('\n')
-        .map((line) => `<div>${line}</div>`)
-        .join(''),
-    }));
+    const results = await Recipe.find({ isDeleted: false })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .exec();
+
+    const totalRecipes = await Recipe.countDocuments({ isDeleted: false }); // Đếm tổng số công thức
+
+    const totalPages = Math.ceil(totalRecipes / limit); // Tính tổng số trang
+
+    // Trả về dữ liệu và nextCursor
+    const nextCursor = results.length < limit ? null : skip + limit;
 
     return res.json({
       message: 'success',
       status: 200,
-      data: updatedResults,
+      data: results,
+      totalPages,
+      nextCursor,
     });
   } catch (error) {
     console.log('error while getting recipes', error);
@@ -48,6 +54,36 @@ exports.getRecipeById = async (req, res) => {
       status: 404,
       error,
     });
+  }
+};
+
+//Check if recipe is exist or not
+exports.checkIfRecipeIsExist = async (req, res, next) => {
+  const { recipeId } = req.params;
+  const { recipe_id } = req.body;
+
+  // Kiểm tra xem recipeId hoặc recipe_id có tồn tại không
+  if (recipeId) {
+    const result = await Recipe.findById(recipeId);
+
+    if (!result) {
+      return next(new AppError('No recipe found', 404));
+    }
+
+    req.recipe = recipeId;
+    next();
+  } else if (recipe_id) {
+    const result = await Recipe.findById(recipe_id);
+
+    // Kiểm tra xem result có tồn tại không
+    if (!result) {
+      return next(new AppError('No recipe found', 404));
+    }
+
+    req.recipe = recipe_id;
+    next();
+  } else {
+    return next(new AppError('No recipe found', 404));
   }
 };
 
@@ -244,8 +280,7 @@ exports.updateRecipe = async (req, res) => {
 // Delete a recipe
 exports.deleteRecipe = async (req, res) => {
   try {
-    // Lấy tham số từ request
-    const { recipeId } = req.params;
+    const recipeId = req.recipe;
 
     // Kiểm tra sự tồn tại của recipeId trong cơ sở dữ liệu
     const existingRecipe = await Recipe.find({

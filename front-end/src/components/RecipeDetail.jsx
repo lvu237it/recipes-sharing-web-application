@@ -1,12 +1,46 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigation, useParams } from 'react-router-dom';
 import { useCommon } from '../contexts/CommonContext';
 import { Image, Table } from 'react-bootstrap';
+import { RiArrowGoBackLine } from 'react-icons/ri';
+import { Link } from 'react-router-dom';
+import { PiDotsThreeOutlineVerticalThin } from 'react-icons/pi';
+import axios from 'axios';
+
+import {
+  BiArrowBack,
+  BiBookmark,
+  BiBookmarkMinus,
+  BiChat,
+  BiDotsHorizontalRounded,
+  BiEdit,
+  BiPencil,
+  BiTrashAlt,
+} from 'react-icons/bi';
+import { FaChevronRight } from 'react-icons/fa';
+import { AiOutlineComment } from 'react-icons/ai';
 
 function RecipeDetail() {
   const { recipeNameSlug } = useParams();
-  const { recipes } = useCommon();
+  const {
+    recipes,
+    setRecipes,
+    Toaster,
+    toast,
+    navigate,
+    handleSaveRecipe,
+    handleUnsaveRecipe,
+    handleSaveToggle,
+    savedRecipeIds,
+    openOptionsRecipeDetailModal,
+    setOpenOptionsRecipeDetailModal,
+  } = useCommon();
+
   const [recipeViewDetails, setRecipeViewDetails] = useState(null);
+  const [openImageRecipeDetailModal, setOpenImageRecipeDetailModal] =
+    useState(false);
+
+  const modalOptionsRecipeDetailRef = useRef(null);
 
   useEffect(() => {
     if (recipeNameSlug) {
@@ -19,14 +53,229 @@ function RecipeDetail() {
     }
   }, [recipeNameSlug]);
 
+  // Thêm/xóa class `no-scroll` trên body khi modal mở/đóng
+  useEffect(() => {
+    if (openImageRecipeDetailModal) {
+      document.body.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
+    }
+
+    // Cleanup: Đảm bảo class `no-scroll` được xóa khi component unmount
+    return () => {
+      document.body.classList.remove('no-scroll');
+    };
+  }, [openImageRecipeDetailModal]);
+
+  // Hàm đóng options modal khi click bên ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Kiểm tra nếu click bên ngoài modal và không phải là nút mở modal
+      if (
+        modalOptionsRecipeDetailRef.current &&
+        !modalOptionsRecipeDetailRef.current.contains(event.target) &&
+        !event.target.closest('.pi-dots-three-outline-vertical-thin') // Kiểm tra nếu click không phải là nút mở modal
+      ) {
+        setOpenOptionsRecipeDetailModal(false);
+      }
+    };
+
+    // Thêm sự kiện lắng nghe click toàn bộ document
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // Cleanup: Xóa sự kiện khi component unmount
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  //Xoá công thức
+  const handleDeleteRecipe = async (recipeId) => {
+    try {
+      const response = await axios.patch(
+        `http://localhost:3000/recipes/delete-recipe/${recipeId}`
+      );
+      setOpenOptionsRecipeDetailModal(false);
+
+      if (response.status === 200) {
+        console.log('Delete recipe successfully!');
+        const promise = () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () => resolve({ name: 'my-toast-deleting-recipe' }),
+              2000
+            )
+          );
+
+        toast.promise(promise, {
+          loading: 'Vui lòng chờ...',
+          success: () => {
+            //Đặt lại recipes list
+            setRecipes((prevRecipes) =>
+              prevRecipes.filter((recipe) => recipe._id !== recipeId)
+            );
+            // Thêm setTimeout để chuyển hướng sau 2 giây
+            setTimeout(() => {
+              navigate('/recipe-list'); // Chuyển hướng đến trang danh sách công thức
+            }, 1000);
+
+            return `Xoá công thức thành công!`;
+          },
+          error: 'Đã có lỗi xảy ra. Vui lòng thử lại.',
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+      toast.error('Có lỗi xảy ra khi xóa công thức! Vui lòng thử lại.');
+    }
+  };
+
   return (
     <>
-      <div className='view-recipe-details-wrapper'>
+      <Toaster richColors />
+      {openImageRecipeDetailModal && (
+        <div
+          className='background-black-open-image'
+          onClick={(e) => {
+            if (e.target.classList.contains('background-black-open-image')) {
+              setOpenImageRecipeDetailModal(false);
+            }
+          }}
+        >
+          <Image
+            className='image-recipe-detail-open'
+            src={recipeViewDetails?.imageUrl}
+            style={{
+              width: '700px',
+              boxShadow: '0px 4px 15px rgba(255, 255, 255, 0.15)',
+            }}
+          />
+        </div>
+      )}
+      {!openImageRecipeDetailModal && (
+        <div
+          className=''
+          style={{
+            position: 'sticky',
+            top: 0,
+            left: 0,
+            background: '#f7f0ed',
+            zIndex: 1,
+            borderBottom: '0.2px solid rgba(0, 0, 0, 0.1)', // Màu nhẹ với độ trong suốt
+          }}
+        >
+          <div className='d-flex justify-content-between'>
+            <Link to={'/recipe-list'}>
+              <RiArrowGoBackLine
+                title='Quay lại'
+                className='ri-arrow-go-back-line-recipe-detail m-3'
+                style={{
+                  fontSize: 32,
+                  padding: 5,
+                  borderRadius: '99%',
+                  color: 'black',
+                }}
+              />
+            </Link>
+
+            <div className='' style={{ position: 'relative' }}>
+              <PiDotsThreeOutlineVerticalThin
+                onClick={() =>
+                  setOpenOptionsRecipeDetailModal(!openOptionsRecipeDetailModal)
+                }
+                title='Thao tác'
+                className='pi-dots-three-outline-vertical-thin m-3'
+                style={{
+                  fontSize: 32,
+                  padding: 5,
+                  borderRadius: '99%',
+                  color: 'black',
+                }}
+              />
+              {openOptionsRecipeDetailModal && (
+                <div
+                  ref={modalOptionsRecipeDetailRef}
+                  className='options-modal border shadow-sm'
+                  style={{
+                    position: 'absolute',
+                    width: '190px',
+                    top: 50,
+                    right: 20,
+                    backgroundColor: 'white',
+                    borderRadius: '10px',
+                  }}
+                >
+                  <div className='p-3'>
+                    <div
+                      className='p-2 options-modal-detail'
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '120px 1fr',
+                      }}
+                      onClick={() => handleSaveToggle(recipeViewDetails?._id)}
+                    >
+                      <div>
+                        {savedRecipeIds.includes(recipeViewDetails?._id)
+                          ? 'Bỏ lưu'
+                          : 'Lưu công thức'}
+                      </div>
+                      {savedRecipeIds.includes(recipeViewDetails?._id) ? (
+                        <BiBookmarkMinus style={{ margin: 'auto' }} />
+                      ) : (
+                        <BiBookmark style={{ margin: 'auto' }} />
+                      )}
+                    </div>
+
+                    <div
+                      className='p-2 options-modal-detail'
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '120px 1fr',
+                      }}
+                    >
+                      <div className=''>Đổi trạng thái</div>
+                      <FaChevronRight style={{ margin: 'auto' }} />
+                    </div>
+
+                    <div
+                      className='p-2 options-modal-detail'
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '120px 1fr',
+                      }}
+                    >
+                      <div className=''>Chỉnh sửa</div>
+                      <BiEdit style={{ margin: 'auto' }} />
+                    </div>
+
+                    <div
+                      className='p-2 options-modal-detail'
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '120px 1fr',
+                        color: 'red',
+                      }}
+                      onClick={() => handleDeleteRecipe(recipeViewDetails?._id)}
+                    >
+                      <div className=''>Xoá công thức</div>
+                      <BiTrashAlt style={{ margin: 'auto' }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div
+        className='view-recipe-details-wrapper m-3'
+        style={{ position: 'relative', minHeight: '100%' }}
+      >
         <div
           className='recipe-details-image-and-description gap-2'
           style={{
             display: 'grid',
-            gridTemplateColumns: '400px 1fr',
             marginBottom: '30px',
           }}
         >
@@ -34,12 +283,12 @@ function RecipeDetail() {
             src={recipeViewDetails?.imageUrl}
             style={{
               width: '400px',
+              maxWidth: '100%',
               margin: 'auto',
-              padding: '10px',
-              border: '0.1px solid whitesmoke',
-              backgroundColor: 'white',
+              borderRadius: '5px',
             }}
-            className='recipe-details-image shadow'
+            className='recipe-details-image-on-top shadow p-2'
+            onClick={() => setOpenImageRecipeDetailModal(true)}
           />
           <div
             className='recipe-details-description'
@@ -69,7 +318,6 @@ function RecipeDetail() {
           className='recipe-ingredients-and-steps'
           style={{
             display: 'grid',
-            gridTemplateColumns: '280px 1fr',
           }}
         >
           <div

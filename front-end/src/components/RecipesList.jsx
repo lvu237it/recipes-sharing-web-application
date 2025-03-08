@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useDebounce } from 'use-debounce';
 import { Button, Image, Form, InputGroup, Col, Row } from 'react-bootstrap';
 import { useCommon } from '../contexts/CommonContext';
 import { Link } from 'react-router-dom';
@@ -6,6 +7,7 @@ import { Dropdown } from 'react-bootstrap';
 import { Modal } from 'react-bootstrap';
 import { BiPencil, BiImageAdd } from 'react-icons/bi';
 import axios from 'axios';
+import { HiMiniBellAlert } from 'react-icons/hi2';
 
 function RecipesList() {
   const {
@@ -18,15 +20,22 @@ function RecipesList() {
     listOfCategories,
     sortOrder,
     setSortOrder,
+    Toaster,
+    toast,
+    handleSaveRecipe,
+    handleUnsaveRecipe,
+    handleSaveToggle,
+    savedRecipeIds,
+    setSavedRecipeIds,
+    currentPage,
+    setCurrentPage,
+    generatePageNumbers,
+    totalPages,
   } = useCommon();
 
   // Modal for creating new recipe
   const [showCreateRecipeModal, setShowCreateRecipeModal] = useState(false);
-  const [showSuccessfulCreateRecipeModal, setShowSuccessfulCreateRecipeModal] =
-    useState(false);
-  // Modal for missing input fields
-  const [showMissingFieldsCreateRecipe, setShowMissingFieldsCreateRecipe] =
-    useState(false);
+  useState(false);
 
   // Details for creating new recipe
   const [inputFoodCategory, setInputFoodCategory] = useState('');
@@ -44,27 +53,55 @@ function RecipesList() {
   const [inputSource, setInputSource] = useState('');
   const [sourcesListForNewRecipe, setSourcesListForNewRecipe] = useState([]);
 
-  useEffect(() => {
-    let updatedRecipes =
-      selectedCategory === 'all'
-        ? [...recipes]
-        : recipes.filter((recipe) =>
-            recipe.foodCategories.includes(selectedCategory)
-          );
+  // Searching recipe by recipe name or ingredients
+  const [searchRecipeInput, setSearchRecipeInput] = useState('');
+  // Thêm hook debounce
+  const [debouncedSearchTerm] = useDebounce(searchRecipeInput, 300);
 
-    if (sortOrder === 'latest') {
-      updatedRecipes.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    } else if (sortOrder === 'oldest') {
-      updatedRecipes.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const filterRecipesResultFinal = useMemo(() => {
+    let updatedRecipes = [...recipes];
+
+    // 1. Category filter
+    if (selectedCategory !== 'all') {
+      updatedRecipes = updatedRecipes.filter((recipe) =>
+        recipe.foodCategories.includes(selectedCategory)
+      );
     }
 
-    setFilteredRecipes(updatedRecipes);
-  }, [selectedCategory, recipes, sortOrder]);
+    // 2. Sorting
+    const sorted = [...updatedRecipes];
+    if (sortOrder === 'latest') {
+      sorted.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    } else if (sortOrder === 'oldest') {
+      sorted.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    }
+    updatedRecipes = sorted;
+
+    // 3. Search
+    if (debouncedSearchTerm.trim()) {
+      const searchTerm = debouncedSearchTerm.toLowerCase().trim();
+      updatedRecipes = updatedRecipes.filter((recipe) => {
+        const titleMatch = recipe.title.toLowerCase().includes(searchTerm);
+        const ingredientMatch = recipe.ingredients.some((ingredient) =>
+          ingredient.toLowerCase().includes(searchTerm)
+        );
+        return titleMatch || ingredientMatch;
+      });
+    }
+
+    return updatedRecipes;
+  }, [selectedCategory, sortOrder, debouncedSearchTerm, recipes]);
+
+  useEffect(() => {
+    setFilteredRecipes(filterRecipesResultFinal);
+  }, [filterRecipesResultFinal, setFilteredRecipes]);
 
   const handleCancelCreateRecipe = () => {
     setShowCreateRecipeModal(false);
     setPreviewImageRecipeUrl(null);
     setInputFoodCategory('');
+    setInputRecipeName('');
+    setInputRecipeDescription('');
     setFoodCategoriesListForNewRecipe([]);
     setInputIngredient('');
     setIngredientsListForNewRecipe([]);
@@ -73,6 +110,19 @@ function RecipesList() {
     setInputSource('');
     setSourcesListForNewRecipe([]);
   };
+  useEffect(() => {
+    if (!showCreateRecipeModal) {
+      setPreviewImageRecipeUrl(null);
+      setInputFoodCategory('');
+      setFoodCategoriesListForNewRecipe([]);
+      setInputIngredient('');
+      setIngredientsListForNewRecipe([]);
+      setInputStep('');
+      setStepsListForNewRecipe([]);
+      setInputSource('');
+      setSourcesListForNewRecipe([]);
+    }
+  }, [showCreateRecipeModal]);
 
   const handlePostRecipe = async () => {
     if (
@@ -83,7 +133,11 @@ function RecipesList() {
       stepsListForNewRecipe.length === 0 ||
       imageRecipe === null
     ) {
-      setShowMissingFieldsCreateRecipe(true);
+      toast.warning(
+        <>
+          <div className=''>Hãy bổ sung đầy đủ các thông tin cần thiết!</div>
+        </>
+      );
       return;
     }
 
@@ -100,11 +154,26 @@ function RecipesList() {
     formData.append('sources', JSON.stringify(sourcesListForNewRecipe));
 
     try {
+      setShowCreateRecipeModal(false);
+
+      const promise = () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ name: 'my-toast-creating-recipe' }), 2000)
+        );
+
       // Upload ảnh trực tiếp lên Cloudinary
       const uploadResponse = await uploadImageToCloudinary(imageRecipe);
-      if (uploadResponse) {
-        console.log('Upload image to cloudinary successfully!');
-      }
+      // toast.promise(promise, {
+      //   loading: 'Đang tải ảnh lên, vui lòng chờ...',
+      //   success: () => {
+      //     if (uploadResponse) {
+      //       console.log('Upload image to cloudinary successfully!');
+      //       return `Tải ảnh thành công!`;
+      //     }
+      //   },
+      //   error: 'Đã có lỗi xảy ra trong quá trình tải ảnh lên.',
+      // });
+
       formData.append('imageUrl', uploadResponse); // Đính kèm URL ảnh đã upload
 
       // Tiến hành gửi yêu cầu POST đến backend với ảnh đã upload
@@ -118,14 +187,20 @@ function RecipesList() {
         }
       );
 
-      if (response.status === 200) {
-        setRecipes((preRecipes) => [response.data.data, ...preRecipes]);
-        console.log('Create recipe post successfully!');
-        setShowCreateRecipeModal(false);
-        setShowSuccessfulCreateRecipeModal(true);
-      } else {
-        console.log('Create recipe post failed!');
-      }
+      toast.promise(promise, {
+        loading: 'Vui lòng chờ quá trình tải lên hoàn tất...',
+        success: () => {
+          if (response.status === 200) {
+            setRecipes((preRecipes) => [response.data.data, ...preRecipes]);
+            console.log('Create recipe post successfully!');
+          } else {
+            console.log('Create recipe post failed!');
+          }
+
+          return `Tạo công thức mới thành công!`;
+        },
+        error: 'Đã có lỗi xảy ra trong quá trình tải lên.',
+      });
     } catch (error) {
       console.error('Error uploading image to Cloudinary:', error);
     }
@@ -172,13 +247,15 @@ function RecipesList() {
 
   return (
     <>
+      <Toaster richColors />
       <div className='' style={{ position: 'relative' }}>
         <div
           className='wrapper-recipes'
-          style={{ width: '90%', margin: 'auto' }}
+          style={{ width: '90%', minHeight: '100vh', margin: 'auto' }}
         >
-          <Row className='wrapper-header-recipes-list'>
+          <Row className='wrapper-header-recipes-list mb-3'>
             <Col
+              lg={3}
               md={3}
               id='title-header-recipe-list'
               className='text-center mb-4'
@@ -188,8 +265,24 @@ function RecipesList() {
             </Col>
 
             <Col
-              md={9}
-              className='d-flex flex-column flex-md-row gap-2 justify-content-md-end justify-content-center align-items-center'
+              lg={4}
+              md={3}
+              className='search-input-recipe-name d-flex justify-content-center align-items-center mb-3 mb-md-0'
+            >
+              <Form.Control
+                type='text'
+                id='search-input-recipe-name-id'
+                placeholder='Nhập tên món hoặc nguyên liệu'
+                className='w-75 w-md-100'
+                value={searchRecipeInput}
+                onChange={(e) => setSearchRecipeInput(e.target.value)}
+              />
+            </Col>
+
+            <Col
+              lg={5}
+              md={6}
+              className='d-flex flex-column flex-lg-row gap-2 justify-content-lg-end justify-content-center align-items-center'
             >
               <Dropdown>
                 <Dropdown.Toggle variant='success'>
@@ -229,15 +322,7 @@ function RecipesList() {
               </Dropdown>
             </Col>
           </Row>
-          <Row className='button-hidden-add-recipe justify-content-center mt-2 mb-3'>
-            <Button
-              onClick={() => setShowCreateRecipeModal(true)}
-              style={{ width: '160px' }}
-              variant='success'
-            >
-              Chia sẻ công thức
-            </Button>
-          </Row>
+
           <BiPencil
             title='Chia sẻ công thức'
             onClick={() => setShowCreateRecipeModal(true)}
@@ -607,135 +692,132 @@ function RecipesList() {
             </Modal.Footer>
           </Modal>
 
-          {/* Modal for notification when successfully creating new recipe */}
-          <Modal
-            show={showSuccessfulCreateRecipeModal}
-            onHide={() => setShowSuccessfulCreateRecipeModal(false)}
-          >
-            <Modal.Header>
-              <Modal.Title>Chia sẻ công thức nấu ăn thành công!</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              Cảm ơn bạn vì đã chia sẻ công thức nấu ăn tuyệt vời này! Chúc bạn
-              sẽ nấu được thật nhiều món ngon mà mình mong muốn!
-            </Modal.Body>
-            <Modal.Footer>
-              <Button
-                variant='secondary'
-                onClick={() => setShowSuccessfulCreateRecipeModal(false)}
-              >
-                Đóng
-              </Button>
-            </Modal.Footer>
-          </Modal>
-
-          {/* Modal for notification when fields is missed*/}
-          <Modal
-            centered
-            style={{
-              width: '99%',
-            }}
-            show={showMissingFieldsCreateRecipe}
-            onHide={() => setShowMissingFieldsCreateRecipe(false)}
-          >
-            <div
-              className=''
-              style={{
-                backgroundColor: '#FFDEAD',
-                borderRadius: '6px',
-              }}
-            >
-              <Modal.Header closeButton>
-                <Modal.Title>
-                  Bạn chưa điền đầy đủ các thông tin cần thiết!
-                </Modal.Title>
-              </Modal.Header>
-              <Modal.Body>
-                Hãy kiểm tra lại các nội dung còn thiếu và chia sẻ công thức này
-                tới mọi người, bạn nhé.
-              </Modal.Body>
-              <Modal.Footer>
-                <Button
-                  variant='secondary'
-                  onClick={() => setShowMissingFieldsCreateRecipe(false)}
-                >
-                  Đóng
-                </Button>
-              </Modal.Footer>
-            </div>
-          </Modal>
-
           {recipes.length === 0 ? (
+            // Loading recipes
             <div className=''>Đang tải công thức...</div>
           ) : filteredRecipes.length === 0 && selectedCategory !== 'all' ? (
+            // Not found recipes with selected category
             <div className=''>Không tìm thấy {selectedCategory} phù hợp</div>
+          ) : filteredRecipes.length === 0 && searchRecipeInput !== '' ? (
+            // Not found recipes with search input
+            <div className=''>
+              Không tìm thấy công thức hoặc nguyên liệu nào trùng với "
+              {searchRecipeInput}"
+            </div>
           ) : (
             <div
               className='recipe-list-wrapper-border'
               style={{
-                // border: '0.2px solid gray',
                 borderRadius: '10px',
                 backgroundColor: '#fdf7f4',
               }}
             >
-              {filteredRecipes.map((recipe) => (
-                <div className='p-3'>
-                  <div
-                    key={recipe._id}
-                    className='wrapper-image-and-content d-md-grid d-flex flex-column gap-3'
-                  >
-                    <Image
-                      className='an-image-in-recipe-list p-2 shadow'
-                      src={recipe.imageUrl}
-                      style={{
-                        margin: 'auto',
-                        border: '0.1px solid whitesmoke',
-                        backgroundColor: 'white',
-                      }}
-                    />
-                    <div
-                      className='wrapper-content-recipe'
-                      style={{ margin: '0px 15px' }}
-                    >
-                      <div
-                        className='recipe-title text-center text-md-start'
-                        style={{
-                          fontWeight: 'bolder',
-                          color: '#528135',
-                          textTransform: 'uppercase',
-                          fontSize: 32,
-                        }}
-                      >
-                        {recipe.title}
-                      </div>
-                      <div
-                        className='recipe-description'
-                        style={{ margin: '10px 0', fontSize: 14 }}
-                        dangerouslySetInnerHTML={{ __html: recipe.description }}
-                      ></div>
-                      <div
-                        className='recipe-actions d-flex gap-2 justify-content-md-end justify-content-center'
-                        style={{
-                          justifyContent: 'end',
-                          gap: '10px',
-                        }}
-                      >
-                        <button className='button-save-recipe'>
-                          Lưu công thức
-                        </button>
+              {filteredRecipes.map((recipe) => {
+                const isSaved = savedRecipeIds.includes(recipe._id);
 
-                        <Link to={`/recipe-details/${recipe.slug}`}>
-                          <button className='button-show-details'>
-                            Xem chi tiết
+                return (
+                  <div className='p-4' key={recipe._id}>
+                    <div
+                      key={recipe._id}
+                      className='wrapper-image-and-content d-md-grid d-flex flex-column gap-3'
+                    >
+                      <Image
+                        className='an-image-in-recipe-list p-2 shadow'
+                        src={recipe.imageUrl}
+                        style={{
+                          margin: 'auto',
+                          border: '0.1px solid whitesmoke',
+                          backgroundColor: 'white',
+                          maxWidth: '100%',
+                        }}
+                      />
+                      <div
+                        className='wrapper-content-recipe'
+                        style={{ margin: '0px 15px' }}
+                      >
+                        <div
+                          className='recipe-title text-center text-md-start'
+                          style={{
+                            fontWeight: 'bolder',
+                            color: '#528135',
+                            textTransform: 'uppercase',
+                            fontSize: 32,
+                          }}
+                        >
+                          {recipe.title}
+                        </div>
+                        <div
+                          className='recipe-description'
+                          style={{ margin: '10px 0', fontSize: 14 }}
+                          dangerouslySetInnerHTML={{
+                            __html: recipe.description,
+                          }}
+                        ></div>
+                        <div
+                          className='recipe-actions d-flex gap-2 justify-content-md-end justify-content-center'
+                          style={{
+                            justifyContent: 'end',
+                            gap: '10px',
+                          }}
+                        >
+                          <button
+                            className='button-save-unsave-recipe'
+                            onClick={() => handleSaveToggle(recipe._id)}
+                          >
+                            {isSaved ? 'Bỏ lưu' : 'Lưu công thức'}
                           </button>
-                        </Link>
+
+                          <Link to={`/recipe-details/${recipe.slug}`}>
+                            <button className='button-show-details'>
+                              Xem chi tiết
+                            </button>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
+
+          <div className='d-flex justify-content-center gap-3 m-3'>
+            {/* Hiển thị các nút phân trang */}
+            {currentPage > 1 && (
+              <button
+                className='button-clicked-pagination rounded px-3 py-2'
+                style={
+                  {
+                    // borderWidth: 0.1,
+                    // borderColor: 'rgba(169, 169, 169, 0.1)', // Màu xám với độ mờ 50%
+                  }
+                }
+                onClick={() => setCurrentPage(currentPage - 1)}
+              >
+                Trang trước
+              </button>
+            )}
+
+            {generatePageNumbers().map((page) => (
+              <button
+                className='button-clicked-pagination rounded rounded px-3 py-2'
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                disabled={page === currentPage}
+              >
+                {page}
+              </button>
+            ))}
+
+            {currentPage < totalPages && (
+              <button
+                className='button-clicked-pagination rounded rounded px-3 py-2'
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                Trang sau
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </>

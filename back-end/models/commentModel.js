@@ -1,12 +1,12 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const commentSchema = new mongoose.Schema({
   content: {
     type: String,
-    required: [true, "A comment needs content!"],
+    required: [true, 'A comment needs content!'],
   },
   user: {
     type: mongoose.SchemaTypes.ObjectId,
-    ref: "User",
+    ref: 'User',
     required: true,
   },
   // dữ liệu cache - mặc định thêm username và avatar để giảm thiểu số lần truy vấn lại tới user mỗi lần hiển thị comment mà cần hiển thị cả username và avatar
@@ -21,7 +21,7 @@ const commentSchema = new mongoose.Schema({
   },
   recipe: {
     type: mongoose.SchemaTypes.ObjectId,
-    ref: "Recipe",
+    ref: 'Recipe',
     required: true,
   },
   createdAt: {
@@ -39,6 +39,6 @@ const commentSchema = new mongoose.Schema({
   deletedAt: Date,
 });
 
-const Comment = mongoose.model("Comment", commentSchema);
+const Comment = mongoose.model('Comment', commentSchema);
 
 module.exports = Comment;

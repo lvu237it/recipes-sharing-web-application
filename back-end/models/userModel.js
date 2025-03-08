@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-
+const mongoose = require("mongoose");
+const crypto = require('crypto')
 //Tạo model cho user dựa trên các phương thức có sẵn của mongoose
 const userSchema = new mongoose.Schema({
   username: {
@@ -34,8 +34,30 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
   deletedAt: Date,
+  refreshToken: {
+    type: String,
+},
+passwordChangedAt: {
+    type: String
+},
+passwordResetToken: {
+    type: String
+},
+passwordResetExpires: {
+    type: String
+}
+}, {
+  timestamps: true
 });
 
-const User = mongoose.model('User', userSchema);
+userSchema.methods = {
+  createPasswordChangedToken: function () {
+      const resetToken = crypto.randomBytes(32).toString('hex')
+      this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex')
+      this.passwordResetExpires = Date.now() + 15 * 60 * 1000
+      return resetToken
+  }
+}
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;

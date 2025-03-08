@@ -21,11 +21,42 @@ body {
   font-family: 'Nunito Sans', sans-serif;
 }
 
+.no-scroll {
+  overflow: hidden;
+}
+
+.background-black-open-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(2, 1, 1, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.image-recipe-detail-open {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.recipe-details-image-on-top {
+  transition: transform 0.3s ease-in-out;
+}
+
+.recipe-details-image-on-top:hover {
+  cursor: pointer;
+  transform: scale(1.05);
+}
+
 #title-header-recipe-list {
   font-family: 'Playwrite CU', sans-serif;
 }
 
-.button-save-recipe {
+.button-save-unsave-recipe {
   background: white;
   color: #528135;
   border: 0.1px solid #528135;
@@ -54,26 +85,41 @@ body {
 }
 
 .icon-add-recipe-bi-plus-pencil {
-  position: absolute;
-  top: 0;
+  position: fixed;
+  bottom: 10px;
   right: 10px;
   cursor: pointer;
   font-size: 36px;
   border: 0.1px solid gray;
   border-radius: 100%;
   padding: 5px;
+  background-color: white;
+}
+
+.ri-arrow-go-back-line-recipe-detail:hover,
+.pi-dots-three-outline-vertical-thin:hover {
+  border: '0.1px solid gray';
+  cursor: pointer;
+  background: #e5e7eb;
+  transition: 0.3s ease-in-out;
+}
+
+@media (max-width: 700px) {
+  .image-recipe-detail-open {
+    border-radius: 0px;
+  }
+}
+
+@media (min-width: 701px) {
+  .image-recipe-detail-open {
+    border-radius: 5px;
+  }
 }
 
 @media (max-width: 768px) {
-  .icon-add-recipe-bi-plus-pencil {
+  /* .icon-add-recipe-bi-plus-pencil {
     display: none !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .button-hidden-add-recipe {
-    display: flex !important;
-  }
+  } */
 
   .wrapper-image-and-content {
     grid-template-columns: 250px 1fr;
@@ -82,19 +128,31 @@ body {
   .an-image-in-recipe-list {
     width: 250px;
   }
+
+  .recipe-ingredients-and-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-details-image-and-description {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 769px) {
-  .button-hidden-add-recipe {
-    display: none !important;
-  }
-
   .wrapper-image-and-content {
     grid-template-columns: 300px 1fr;
   }
 
   .an-image-in-recipe-list {
     width: 300px;
+  }
+
+  .recipe-ingredients-and-steps {
+    grid-template-columns: 280px 1fr;
+  }
+
+  .recipe-details-image-and-description {
+    grid-template-columns: 400px 1fr;
   }
 }
 
@@ -103,4 +161,32 @@ body {
     color: #213547;
     background-color: #ffffff;
   }
+}
+
+.options-modal-detail:hover {
+  background-color: #e5e7eb;
+  transition: 0.3s ease-in-out;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.button-clicked-pagination {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-width: 1px;
+  border-color: rgba(169, 169, 169, 0.5); /* Màu xám với độ mờ 10% */
+  border-style: solid; /* Đảm bảo border hiển thị */
+  /* transition: 0.3s ease-in-out; */
+}
+
+.button-clicked-pagination:hover {
+  background-color: rgba(197, 197, 197, 0.1);
+  transition: 0.3s ease-in-out;
+}
+
+.button-clicked-pagination:disabled {
+  /* background-color: rgba(169, 169, 169, 0.3); Màu nền khi nút bị vô hiệu hóa */
+  /* border-color: rgba(169, 169, 169, 0.3); Màu viền khi nút bị vô hiệu hóa */
+  /* cursor: not-allowed; Đổi con trỏ thành not-allowed khi nút bị vô hiệu hóa */
+  color: white;
+  background-color: black;
 }
