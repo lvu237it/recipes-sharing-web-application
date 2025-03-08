@@ -100,6 +100,8 @@ function RecipesList() {
     setShowCreateRecipeModal(false);
     setPreviewImageRecipeUrl(null);
     setInputFoodCategory('');
+    setInputRecipeName('');
+    setInputRecipeDescription('');
     setFoodCategoriesListForNewRecipe([]);
     setInputIngredient('');
     setIngredientsListForNewRecipe([]);
@@ -108,6 +110,19 @@ function RecipesList() {
     setInputSource('');
     setSourcesListForNewRecipe([]);
   };
+  useEffect(() => {
+    if (!showCreateRecipeModal) {
+      setPreviewImageRecipeUrl(null);
+      setInputFoodCategory('');
+      setFoodCategoriesListForNewRecipe([]);
+      setInputIngredient('');
+      setIngredientsListForNewRecipe([]);
+      setInputStep('');
+      setStepsListForNewRecipe([]);
+      setInputSource('');
+      setSourcesListForNewRecipe([]);
+    }
+  }, [showCreateRecipeModal]);
 
   const handlePostRecipe = async () => {
     if (
@@ -141,11 +156,24 @@ function RecipesList() {
     try {
       setShowCreateRecipeModal(false);
 
+      const promise = () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ name: 'my-toast-creating-recipe' }), 2000)
+        );
+
       // Upload ảnh trực tiếp lên Cloudinary
       const uploadResponse = await uploadImageToCloudinary(imageRecipe);
-      if (uploadResponse) {
-        console.log('Upload image to cloudinary successfully!');
-      }
+      // toast.promise(promise, {
+      //   loading: 'Đang tải ảnh lên, vui lòng chờ...',
+      //   success: () => {
+      //     if (uploadResponse) {
+      //       console.log('Upload image to cloudinary successfully!');
+      //       return `Tải ảnh thành công!`;
+      //     }
+      //   },
+      //   error: 'Đã có lỗi xảy ra trong quá trình tải ảnh lên.',
+      // });
+
       formData.append('imageUrl', uploadResponse); // Đính kèm URL ảnh đã upload
 
       // Tiến hành gửi yêu cầu POST đến backend với ảnh đã upload
@@ -159,15 +187,16 @@ function RecipesList() {
         }
       );
 
-      const promise = () =>
-        new Promise((resolve) =>
-          setTimeout(() => resolve({ name: 'my-toast-creating-recipe' }), 2000)
-        );
-
       toast.promise(promise, {
         loading: 'Vui lòng chờ quá trình tải lên hoàn tất...',
-
         success: () => {
+          if (response.status === 200) {
+            setRecipes((preRecipes) => [response.data.data, ...preRecipes]);
+            console.log('Create recipe post successfully!');
+          } else {
+            console.log('Create recipe post failed!');
+          }
+
           return `Tạo công thức mới thành công!`;
         },
         error: 'Đã có lỗi xảy ra trong quá trình tải lên.',
