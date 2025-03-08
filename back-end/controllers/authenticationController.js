@@ -12,7 +12,7 @@ exports.registerUser = async (req, res) => {
     // Kiểm tra xem có thiếu trường nào không
     if (!username || !email || !password) {
       return res.status(400).json({
-        message: "Missing required fields",
+        message: 'Missing required fields',
         status: 400,
       });
     }
@@ -21,7 +21,7 @@ exports.registerUser = async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({
-        message: "Email already exists",
+        message: 'Email already exists',
         status: 409,
       });
     }
@@ -39,12 +39,12 @@ exports.registerUser = async (req, res) => {
 
     // Trả về kết quả
     res.status(201).json({
-      message: "User registered successfully",
+      message: 'User registered successfully',
       status: 201,
       data: newUser,
     });
   } catch (error) {
-    console.error("Error while registering user:", error);
+    console.error('Error while registering user:', error);
     res.status(500).json({
       error,                 
     });

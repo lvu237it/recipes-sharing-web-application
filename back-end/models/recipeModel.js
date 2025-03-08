@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const slugify = require('slugify');
 const recipeSchema = new mongoose.Schema({
   //--------mon xao---------
   imageUrl: {
@@ -40,6 +40,10 @@ const recipeSchema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, 'A post needs a title!'],
+  },
+  slug: {
+    type: String,
+    unique: true,
   },
   description: {
     type: String,
@@ -82,6 +86,51 @@ const recipeSchema = new mongoose.Schema({
     default: false,
   },
   deletedAt: Date,
+});
+
+/* 
+-Pre Hooks: Chạy trước khi một hành động được thực hiện.
+  +ví dụ như lưu (save), validate, hoặc xóa (remove) một tài liệu.
+  +Bạn có thể sử dụng pre hooks để thực hiện các hành động như kiểm tra dữ liệu, mã hóa mật khẩu, hoặc thay đổi giá trị của các trường trước khi lưu vào cơ sở dữ liệu.
+
+-Post Hooks: Chạy sau khi một hành động được thực hiện.
+  +Post hooks chạy sau một hành động cụ thể, ví dụ như sau khi lưu (save), tìm kiếm (find), hoặc xóa (remove) một tài liệu.
+  +Bạn có thể sử dụng post hooks để thực hiện các hành động như gửi email thông báo, ghi log, hoặc thay đổi dữ liệu sau khi nó đã được lưu vào cơ sở dữ liệu.
+*/
+
+//DOCUMENT MIDDLEWARE: runs before .save() .create()...
+//----------NOTE!--------------------------------------
+/*
+Phần mềm trung gian tài liệu CHỈ CHẠY ĐỂ LƯU (save) VÀ TẠO (create) TÀI LIỆU CHỨ KHÔNG CHẠY ĐỂ CẬP NHẬT (update)
+*/
+recipeSchema.pre('save', async function (next) {
+  if (!this.isModified('title')) return next(); // Chỉ tạo slug nếu 'title' thay đổi
+
+  // Tạo slug cơ bản từ title
+  let potentialSlug = slugify(this.title, {
+    lower: true,
+    remove: /[*+~.()'"!:@,]/g, // Loại bỏ dấu phẩy và ký tự đặc biệt
+  });
+
+  // Kiểm tra slug đã tồn tại trong cơ sở dữ liệu
+  let slugExists = await mongoose.models.Recipe.findOne({
+    slug: potentialSlug,
+  });
+
+  // Nếu tồn tại, thêm hậu tố vào slug cho đến khi không trùng lặp
+  let count = 1;
+  while (slugExists) {
+    potentialSlug = `${slugify(this.title, {
+      lower: true,
+      remove: /[*+~.()'"!:@,]/g,
+    })}-${count}`;
+    slugExists = await mongoose.models.Recipe.findOne({ slug: potentialSlug });
+    count++;
+  }
+
+  // Gán slug không trùng lặp
+  this.slug = potentialSlug;
+  next();
 });
 
 const Recipe = mongoose.model('Recipe', recipeSchema);
