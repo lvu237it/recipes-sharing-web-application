@@ -706,10 +706,11 @@ function RecipesList() {
             </div>
           ) : (
             <div
-              className='recipe-list-wrapper-border'
+              className='recipe-list-wrapper-border border'
               style={{
                 borderRadius: '10px',
                 backgroundColor: '#fdf7f4',
+                borderColor: 'rgba(169, 169, 169, 0.1)', // Màu xám với độ mờ 50%
               }}
             >
               {filteredRecipes.map((recipe) => {

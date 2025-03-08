@@ -57,6 +57,30 @@ exports.getRecipeById = async (req, res) => {
   }
 };
 
+// Get populated recipe by recipe id
+exports.getPopulateRecipeById = async (req, res) => {
+  try {
+    const { recipeId } = req.params;
+    const results = await Recipe.find({
+      _id: recipeId,
+      isDeleted: false,
+    }).populate('owner', 'username avatar');
+
+    return res.json({
+      message: 'success',
+      status: 200,
+      data: results,
+    });
+  } catch (error) {
+    console.log('error while getting populated recipes by id', error);
+    return res.json({
+      message: 'error',
+      status: 404,
+      error,
+    });
+  }
+};
+
 //Check if recipe is exist or not
 exports.checkIfRecipeIsExist = async (req, res, next) => {
   const { recipeId } = req.params;
