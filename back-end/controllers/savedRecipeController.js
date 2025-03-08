@@ -154,6 +154,23 @@ exports.getAllSavedRecipes = async (req, res, next) => {
   }
 };
 
+exports.getSavedRecipesBySaverId = async (req, res, next) => {
+  try {
+    const { saverId } = req.params;
+    const results = await SavedRecipe.find({ saver: saverId });
+    if (results.length === 0) {
+      return next(new AppError('No saved recipes by saver id found', 404));
+    }
+    res.status(200).json(results);
+  } catch (error) {
+    console.error('Error getting saved recipes by saver id', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to get saved recipes by saver id.',
+    });
+  }
+};
+
 exports.getInformationOfSavedRecipe = async (req, res, next) => {
   try {
     const savedRecipeId = req.savedRecipeId;

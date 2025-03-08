@@ -27,6 +27,10 @@ function RecipesList() {
     handleSaveToggle,
     savedRecipeIds,
     setSavedRecipeIds,
+    currentPage,
+    setCurrentPage,
+    generatePageNumbers,
+    totalPages,
   } = useCommon();
 
   // Modal for creating new recipe
@@ -227,7 +231,7 @@ function RecipesList() {
       <div className='' style={{ position: 'relative' }}>
         <div
           className='wrapper-recipes'
-          style={{ width: '90%', margin: 'auto' }}
+          style={{ width: '90%', minHeight: '100vh', margin: 'auto' }}
         >
           <Row className='wrapper-header-recipes-list mb-3'>
             <Col
@@ -692,7 +696,7 @@ function RecipesList() {
                 const isSaved = savedRecipeIds.includes(recipe._id);
 
                 return (
-                  <div className='p-4'>
+                  <div className='p-4' key={recipe._id}>
                     <div
                       key={recipe._id}
                       className='wrapper-image-and-content d-md-grid d-flex flex-column gap-3'
@@ -736,34 +740,11 @@ function RecipesList() {
                             gap: '10px',
                           }}
                         >
-                          {/* <button
-                            onClick={() => handleSaveRecipe(recipe._id)}
-                            className='button-save-recipe'
-                          >
-                            Lưu công thức
-                          </button>
-                          <button
-                            onClick={() => handleUnsaveRecipe(recipe._id)}
-                            className='button-save-recipe'
-                          >
-                            Bỏ lưu
-                          </button> */}
-                          {/* <button
-                            onClick={() => handleSaveToggle(recipe._id)}
-                            className={`save-toggle-btn button-save-unsave-recipe ${
-                              isSaved ? 'unsave' : 'save'
-                            }`}
-                          >
-                            {isSaved ? 'Bỏ lưu' : 'Lưu công thức'}
-                          </button> */}
-
                           <button
                             className='button-save-unsave-recipe'
                             onClick={() => handleSaveToggle(recipe._id)}
                           >
-                            {savedRecipeIds.includes(recipe._id)
-                              ? 'Bỏ lưu'
-                              : 'Lưu công thức'}
+                            {isSaved ? 'Bỏ lưu' : 'Lưu công thức'}
                           </button>
 
                           <Link to={`/recipe-details/${recipe.slug}`}>
@@ -779,6 +760,44 @@ function RecipesList() {
               })}
             </div>
           )}
+
+          <div className='d-flex justify-content-center gap-3 m-3'>
+            {/* Hiển thị các nút phân trang */}
+            {currentPage > 1 && (
+              <button
+                className='button-clicked-pagination rounded px-3 py-2'
+                style={
+                  {
+                    // borderWidth: 0.1,
+                    // borderColor: 'rgba(169, 169, 169, 0.1)', // Màu xám với độ mờ 50%
+                  }
+                }
+                onClick={() => setCurrentPage(currentPage - 1)}
+              >
+                Trang trước
+              </button>
+            )}
+
+            {generatePageNumbers().map((page) => (
+              <button
+                className='button-clicked-pagination rounded rounded px-3 py-2'
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                disabled={page === currentPage}
+              >
+                {page}
+              </button>
+            ))}
+
+            {currentPage < totalPages && (
+              <button
+                className='button-clicked-pagination rounded rounded px-3 py-2'
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                Trang sau
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </>

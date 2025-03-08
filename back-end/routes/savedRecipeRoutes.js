@@ -9,6 +9,12 @@ router.get(
   savedRecipeController.checkIfSavedRecipeIsExist,
   savedRecipeController.getInformationOfSavedRecipe
 );
+router.get(
+  '/all-saved-recipes-by-user-id/:saverId',
+  // savedRecipeController.checkSaverIsExist,
+  savedRecipeController.getSavedRecipesBySaverId
+);
+
 router.post(
   '/save-to-my-favorite-recipes/:recipeId',
   recipeController.checkIfRecipeIsExist,

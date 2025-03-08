@@ -169,3 +169,24 @@ body {
   border-radius: 10px;
   cursor: pointer;
 }
+
+.button-clicked-pagination {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-width: 1px;
+  border-color: rgba(169, 169, 169, 0.5); /* Màu xám với độ mờ 10% */
+  border-style: solid; /* Đảm bảo border hiển thị */
+  /* transition: 0.3s ease-in-out; */
+}
+
+.button-clicked-pagination:hover {
+  background-color: rgba(197, 197, 197, 0.1);
+  transition: 0.3s ease-in-out;
+}
+
+.button-clicked-pagination:disabled {
+  /* background-color: rgba(169, 169, 169, 0.3); Màu nền khi nút bị vô hiệu hóa */
+  /* border-color: rgba(169, 169, 169, 0.3); Màu viền khi nút bị vô hiệu hóa */
+  /* cursor: not-allowed; Đổi con trỏ thành not-allowed khi nút bị vô hiệu hóa */
+  color: white;
+  background-color: black;
+}

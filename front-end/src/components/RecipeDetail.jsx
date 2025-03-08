@@ -32,12 +32,12 @@ function RecipeDetail() {
     handleUnsaveRecipe,
     handleSaveToggle,
     savedRecipeIds,
+    openOptionsRecipeDetailModal,
+    setOpenOptionsRecipeDetailModal,
   } = useCommon();
 
   const [recipeViewDetails, setRecipeViewDetails] = useState(null);
   const [openImageRecipeDetailModal, setOpenImageRecipeDetailModal] =
-    useState(false);
-  const [openOptionsRecipeDetailModal, setOpenOptionsRecipeDetailModal] =
     useState(false);
 
   const modalOptionsRecipeDetailRef = useRef(null);
@@ -95,6 +95,7 @@ function RecipeDetail() {
       const response = await axios.patch(
         `http://localhost:3000/recipes/delete-recipe/${recipeId}`
       );
+      setOpenOptionsRecipeDetailModal(false);
 
       if (response.status === 200) {
         console.log('Delete recipe successfully!');
@@ -122,38 +123,12 @@ function RecipeDetail() {
           },
           error: 'Đã có lỗi xảy ra. Vui lòng thử lại.',
         });
-
-        // toast.success('');
       }
     } catch (error) {
       console.error('Error deleting recipe:', error);
       toast.error('Có lỗi xảy ra khi xóa công thức! Vui lòng thử lại.');
     }
   };
-
-  // useEffect(() => {
-  //   const fetchRecipe = async () => {
-  //     const response = await axios.get(
-  //       `http://localhost:3000/recipes/${recipeViewDetails._id}`
-  //     );
-  //     setRecipeViewDetails(response.data);
-
-  //     // Kiểm tra lại trạng thái saved với server
-  //     const savedResponse = await axios.post('/check-is-saved', {
-  //       recipeId: recipeViewDetails._id,
-  //       saverId: '67bf0492b8e677402c59129c',
-  //     });
-
-  //     if (
-  //       savedResponse.data.isSaved !==
-  //       savedRecipeIds.includes(recipeViewDetails._id)
-  //     ) {
-  //       handleSaveToggle(recipeViewDetails._id); // Đồng bộ hóa nếu có sai lệch
-  //     }
-  //   };
-
-  //   fetchRecipe();
-  // }, [recipeViewDetails._id]);
 
   return (
     <>
@@ -295,7 +270,7 @@ function RecipeDetail() {
 
       <div
         className='view-recipe-details-wrapper m-3'
-        style={{ position: 'relative' }}
+        style={{ position: 'relative', minHeight: '100%' }}
       >
         <div
           className='recipe-details-image-and-description gap-2'
