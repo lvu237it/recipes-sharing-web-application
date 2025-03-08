@@ -13,6 +13,10 @@ export const Common = ({ children }) => {
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortOrder, setSortOrder] = useState('latest');
+
+  const [openOptionsRecipeDetailModal, setOpenOptionsRecipeDetailModal] =
+    useState(false);
+
   const navigate = useNavigate();
 
   const listOfCategories = [
@@ -53,19 +57,42 @@ export const Common = ({ children }) => {
   const frontEndUrl = import.meta.env.VITE_API_BASE_URL_DEVELOPMENT;
 
   const [savedRecipeIds, setSavedRecipeIds] = useState([]);
+  const [nextCursor, setNextCursor] = useState(null); // State để lưu trữ cursor tiếp theo
+  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
+  const [totalPages, setTotalPages] = useState(0); // Tổng số trang
 
+  // Fetch recipes
   useEffect(() => {
-    async function getRecipes() {
+    async function getRecipes(page) {
       try {
-        const response = await axios.get('http://localhost:3000/recipes');
+        const limit = 10; // Số lượng công thức mỗi trang
+        const cursor = (page - 1) * limit; // Tính toán giá trị cursor dựa trên trang hiện tại
+        const response = await axios.get('http://localhost:3000/recipes', {
+          params: { limit, cursor },
+        });
+
         setRecipes(response.data.data);
+        setTotalPages(response.data.totalPages); // Lưu tổng số trang
       } catch (error) {
         console.error('Failed to fetch recipes:', error);
-        setRecipes([]);
       }
     }
-    getRecipes();
-  }, []);
+
+    getRecipes(currentPage); // Gọi API khi trang thay đổi
+  }, [currentPage]);
+
+  // Tạo một mảng chứa các page buttons (tối đa 5 trang)
+  const generatePageNumbers = () => {
+    const pageNumbers = [];
+    let start = Math.max(currentPage - 2, 1);
+    let end = Math.min(currentPage + 2, totalPages);
+
+    for (let i = start; i <= end; i++) {
+      pageNumbers.push(i);
+    }
+
+    return pageNumbers;
+  };
 
   const saverId = '67bf0492b8e677402c59129c';
 
@@ -74,26 +101,16 @@ export const Common = ({ children }) => {
     const fetchSavedRecipes = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:3000/saved-recipes',
-          {
-            params: { saverId },
-          }
+          `http://localhost:3000/saved-recipes/all-saved-recipes-by-user-id/${saverId}`
         );
-        const savedIds = response.data.map((recipe) => recipe._id);
-        setSavedRecipeIds(savedIds);
 
-        // Lưu vào localStorage để duy trì khi reload
-        localStorage.setItem('savedRecipes', JSON.stringify(savedIds));
+        // Lấy danh sách `recipe` từ response.data
+        const savedRecipeIdsList = response.data.map((item) => item.recipe);
+        setSavedRecipeIds(savedRecipeIdsList);
       } catch (error) {
         console.error('Lỗi tải danh sách đã lưu:', error);
       }
     };
-
-    // Kiểm tra cache trước khi fetch
-    const cached = localStorage.getItem('savedRecipes');
-    if (cached) {
-      setSavedRecipeIds(JSON.parse(cached));
-    }
 
     fetchSavedRecipes();
   }, [saverId]);
@@ -103,15 +120,19 @@ export const Common = ({ children }) => {
     const isSaved = savedRecipeIds.includes(recipeId);
 
     try {
-      // Optimistic update
-      // setSavedRecipeIds((prev) =>
-      //   isSaved ? prev.filter((id) => id !== recipeId) : [...prev, recipeId]
-      // );
-      const newSavedIds = isSaved
-        ? savedRecipeIds.filter((id) => id !== recipeId)
-        : [...savedRecipeIds, recipeId];
+      // Tạo bản sao của savedRecipeIds để cập nhật đúng
+      let newSavedIds;
+      if (isSaved) {
+        newSavedIds = savedRecipeIds.filter((id) => id !== recipeId);
+      } else {
+        if (!savedRecipeIds.includes(recipeId)) {
+          newSavedIds = [...savedRecipeIds, recipeId];
+        } else {
+          newSavedIds = [...savedRecipeIds]; // Không thay đổi nếu đã tồn tại
+        }
+      }
+
       setSavedRecipeIds(newSavedIds);
-      localStorage.setItem('savedRecipes', JSON.stringify(newSavedIds));
 
       // Gọi API tương ứng
       const endpoint = isSaved ? 'unsave' : 'save';
@@ -130,9 +151,6 @@ export const Common = ({ children }) => {
         toast.success('Đã lưu công thức!');
       }
     } catch (error) {
-      // Rollback state và cache
-      setSavedRecipeIds((prev) => [...prev]);
-      localStorage.setItem('savedRecipes', JSON.stringify([...savedRecipeIds]));
       toast.error(
         `Lỗi: ${error.response?.data?.message || 'Thao tác thất bại'}`
       );
@@ -203,6 +221,12 @@ export const Common = ({ children }) => {
         handleSaveToggle,
         savedRecipeIds,
         setSavedRecipeIds,
+        openOptionsRecipeDetailModal,
+        setOpenOptionsRecipeDetailModal,
+        currentPage,
+        setCurrentPage,
+        generatePageNumbers,
+        totalPages,
       }}
     >
       {children}

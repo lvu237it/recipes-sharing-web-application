@@ -4,22 +4,27 @@ const AppError = require('../utils/appError');
 // Get all recipes
 exports.getAllRecipes = async (req, res) => {
   try {
-    const results = await Recipe.find({ isDeleted: false });
+    const { limit = 10, cursor = null } = req.query; // Thêm tham số limit và cursor
+    const skip = cursor ? parseInt(cursor) : 0;
 
-    // Thay thế ký tự \n bằng thẻ <div>
-    const updatedResults = results.map((recipe) => ({
-      ...recipe._doc,
-      description: recipe.description
-        .replace(/'/g, '"')
-        .split('\n')
-        .map((line) => `<div>${line}</div>`)
-        .join(''),
-    }));
+    const results = await Recipe.find({ isDeleted: false })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .exec();
+
+    const totalRecipes = await Recipe.countDocuments({ isDeleted: false }); // Đếm tổng số công thức
+
+    const totalPages = Math.ceil(totalRecipes / limit); // Tính tổng số trang
+
+    // Trả về dữ liệu và nextCursor
+    const nextCursor = results.length < limit ? null : skip + limit;
 
     return res.json({
       message: 'success',
       status: 200,
-      data: updatedResults,
+      data: results,
+      totalPages,
+      nextCursor,
     });
   } catch (error) {
     console.log('error while getting recipes', error);
