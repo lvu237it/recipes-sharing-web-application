@@ -12,12 +12,22 @@ exports.getAllRecipes = async (req, res) => {
       .limit(parseInt(limit))
       .exec();
 
+    // Thay thế ký tự \n bằng thẻ <div>
+    const updatedResults = results.map((recipe) => ({
+      ...recipe._doc,
+      description: recipe.description
+        .replace(/'/g, '"')
+        .split('\n')
+        .map((line) => `<div>${line}</div>`)
+        .join(''),
+    }));
+
     const totalRecipes = await Recipe.countDocuments({ isDeleted: false }); // Đếm tổng số công thức
 
     const totalPages = Math.ceil(totalRecipes / limit); // Tính tổng số trang
 
     // Trả về dữ liệu và nextCursor
-    const nextCursor = results.length < limit ? null : skip + limit;
+    const nextCursor = updatedResults.length < limit ? null : skip + limit;
 
     return res.json({
       message: 'success',
@@ -25,7 +35,7 @@ exports.getAllRecipes = async (req, res) => {
       totalRecipes,
       totalPages,
       nextCursor,
-      data: results,
+      data: updatedResults,
     });
   } catch (error) {
     console.log('error while getting recipes', error);
@@ -345,7 +355,7 @@ exports.deleteRecipe = async (req, res) => {
 };
 
 // Search recipes by title or ingredients
-exports.searchRecipes = async (req, res) => {
+exports.searchRecipesByQuery = async (req, res) => {
   try {
     const { query = '', limit = 10, cursor = 0 } = req.query;
 
@@ -378,8 +388,19 @@ exports.searchRecipes = async (req, res) => {
       .limit(parseInt(limit))
       .exec();
 
+    // Thay thế ký tự \n bằng thẻ <div>
+    const updatedResults = results.map((recipe) => ({
+      ...recipe._doc,
+      description: recipe.description
+        .replace(/'/g, '"')
+        .split('\n')
+        .map((line) => `<div>${line}</div>`)
+        .join(''),
+    }));
+
     // Calculate next cursor
-    const nextCursor = results.length < limit ? null : parseInt(cursor) + limit;
+    const nextCursor =
+      updatedResults.length < limit ? null : parseInt(cursor) + limit;
 
     return res.json({
       message: 'success',
@@ -387,7 +408,7 @@ exports.searchRecipes = async (req, res) => {
       totalRecipes,
       totalPages,
       nextCursor,
-      data: results,
+      data: updatedResults,
     });
   } catch (error) {
     console.log('error while searching recipes', error);

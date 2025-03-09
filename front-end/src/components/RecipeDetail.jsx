@@ -385,8 +385,9 @@ function RecipeDetail() {
               padding: '10px 20px',
             }}
           >
-            <Table bordered responsive hover>
+            <Table bordered responsive>
               <th
+                className='py-2'
                 style={{
                   color: '#528135',
                   fontSize: 24,
