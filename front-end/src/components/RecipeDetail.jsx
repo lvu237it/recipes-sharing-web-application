@@ -6,7 +6,7 @@ import { RiArrowGoBackLine } from 'react-icons/ri';
 import { Link } from 'react-router-dom';
 import { PiDotsThreeOutlineVerticalThin } from 'react-icons/pi';
 import axios from 'axios';
-
+import { DateTime } from 'luxon';
 import {
   BiArrowBack,
   BiBookmark,
@@ -39,6 +39,7 @@ function RecipeDetail() {
   const [recipeViewDetails, setRecipeViewDetails] = useState(null);
   const [openImageRecipeDetailModal, setOpenImageRecipeDetailModal] =
     useState(false);
+  const [authorRecipeDetails, setAuthorRecipeDetails] = useState(null);
 
   const modalOptionsRecipeDetailRef = useRef(null);
 
@@ -52,6 +53,27 @@ function RecipeDetail() {
       }
     }
   }, [recipeNameSlug]);
+
+  // const now = DateTime.now().setZone('Asia/Ho_Chi_Minh'); // Thiết lập múi giờ VN
+  // const formattedDate = now.toFormat('hh:mm a dd/MM/yyyy'); // 12h format
+  // const formattedDate24h = now.toFormat('HH:mm dd/MM/yyyy'); // 24h format
+
+  useEffect(() => {
+    console.log(recipeViewDetails);
+
+    const getAuthorRecipeDetails = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/recipes/${recipeViewDetails?._id}/populate`
+        );
+        console.log('response.data.data[0].owner', response.data.data[0].owner);
+        setAuthorRecipeDetails(response.data.data[0].owner);
+      } catch (error) {
+        console.error('Error getting populated recipe:', error);
+      }
+    };
+    getAuthorRecipeDetails();
+  }, [recipeViewDetails]);
 
   // Thêm/xóa class `no-scroll` trên body khi modal mở/đóng
   useEffect(() => {
@@ -269,8 +291,13 @@ function RecipeDetail() {
       )}
 
       <div
-        className='view-recipe-details-wrapper m-3'
-        style={{ position: 'relative', minHeight: '100%' }}
+        className='view-recipe-details-wrapper m-3 p-md-4 p-3 border'
+        style={{
+          position: 'relative',
+          minHeight: '100%',
+          borderRadius: '10px',
+          borderColor: 'rgba(169, 169, 169, 0.1)', // Màu xám với độ mờ 50%
+        }}
       >
         <div
           className='recipe-details-image-and-description gap-2'
@@ -294,6 +321,37 @@ function RecipeDetail() {
             className='recipe-details-description'
             style={{ margin: '15px 20px' }}
           >
+            <div
+              className='avatar-information mb-3'
+              style={{ display: 'grid', gridTemplateColumns: '65px 1fr' }}
+            >
+              <Image
+                className='avatar-image my-auto'
+                style={{
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: '100%',
+                  objectFit: 'cover',
+                }}
+                src='https://media.gettyimages.com/id/2156062809/photo/headshot-closeup-portrait-middle-eastern-israel-businesswoman-business-lady-standing-isolated.jpg?b=1&s=612x612&w=0&k=20&c=mPEqaET5s98W_40DmBTRbYY5z0F-_1YkqdC4TCHJeig='
+              />
+              <div className=''>
+                <div
+                  className='author-name'
+                  style={{ fontSize: 22, fontWeight: 600 }}
+                >
+                  {authorRecipeDetails?.username}
+                </div>
+                <div className='bi-pencil-and-created-at d-flex gap-2 align-items-center'>
+                  <BiPencil />
+                  <div className='created-at'>
+                    {DateTime.fromISO(recipeViewDetails?.createdAt).toFormat(
+                      'HH:mm dd/MM/yyyy'
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
             <div
               className='recipe-details-title'
               style={{
