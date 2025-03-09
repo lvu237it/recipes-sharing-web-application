@@ -795,6 +795,7 @@ function RecipesList() {
                   style={{
                     backgroundColor: page === currentPage ? '#528135' : '',
                     color: page === currentPage ? 'white' : '',
+                    minWidth: '40px',
                   }}
                 >
                   {page}
@@ -833,6 +834,7 @@ function RecipesList() {
                   style={{
                     backgroundColor: page === currentPage ? '#528135' : '',
                     color: page === currentPage ? 'white' : '',
+                    minWidth: '40px',
                   }}
                 >
                   {page}

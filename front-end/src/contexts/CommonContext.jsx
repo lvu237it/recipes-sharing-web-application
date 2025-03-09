@@ -63,6 +63,8 @@ export const Common = ({ children }) => {
   const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
   const [totalPages, setTotalPages] = useState(0); // Tổng số trang
 
+  const isMobile = useMediaQuery({ maxWidth: 768 });
+
   // Fetch recipes based on the current page
   const getRecipes = async (page) => {
     try {
@@ -120,11 +122,18 @@ export const Common = ({ children }) => {
   // Tạo một mảng chứa các page buttons
   const generatePageNumbers = () => {
     const pageNumbers = [];
-    let start = Math.max(currentPage - 2, 1);
-    let end = Math.min(currentPage + 2, totalPages);
 
-    for (let i = start; i <= end; i++) {
-      pageNumbers.push(i);
+    if (isMobile) {
+      // Trên mobile: chỉ hiển thị trang hiện tại
+      pageNumbers.push(currentPage);
+    } else {
+      // Trên desktop: hiển thị 5 trang
+      let start = Math.max(currentPage - 2, 1);
+      let end = Math.min(currentPage + 2, totalPages);
+
+      for (let i = start; i <= end; i++) {
+        pageNumbers.push(i);
+      }
     }
 
     return pageNumbers;
