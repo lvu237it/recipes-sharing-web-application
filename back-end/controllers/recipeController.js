@@ -22,9 +22,10 @@ exports.getAllRecipes = async (req, res) => {
     return res.json({
       message: 'success',
       status: 200,
-      data: results,
+      totalRecipes,
       totalPages,
       nextCursor,
+      data: results,
     });
   } catch (error) {
     console.log('error while getting recipes', error);
@@ -252,6 +253,7 @@ exports.updateRecipe = async (req, res) => {
       ingredients,
       steps,
       sources,
+      status,
     } = req.body;
     const { recipeId } = req.params;
 
@@ -276,6 +278,7 @@ exports.updateRecipe = async (req, res) => {
       description,
       ingredients,
       steps,
+      status,
       sources,
       updatedAt: Date.now(),
     };
@@ -337,6 +340,61 @@ exports.deleteRecipe = async (req, res) => {
     return res.status(500).json({
       message: 'Server error',
       status: 500,
+    });
+  }
+};
+
+// Search recipes by title or ingredients
+exports.searchRecipes = async (req, res) => {
+  try {
+    const { query = '', limit = 10, cursor = 0 } = req.query;
+
+    if (!query.trim()) {
+      return res.json({
+        message: 'success',
+        status: 200,
+        data: [],
+        totalPages: 0,
+        nextCursor: null,
+      });
+    }
+
+    // Create search query for both title and ingredients
+    const searchQuery = {
+      isDeleted: false,
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { ingredients: { $elemMatch: { $regex: query, $options: 'i' } } },
+      ],
+    };
+
+    // Get total count for pagination
+    const totalRecipes = await Recipe.countDocuments(searchQuery);
+    const totalPages = Math.ceil(totalRecipes / limit);
+
+    // Get paginated results
+    const results = await Recipe.find(searchQuery)
+      .skip(parseInt(cursor))
+      .limit(parseInt(limit))
+      .exec();
+
+    // Calculate next cursor
+    const nextCursor = results.length < limit ? null : parseInt(cursor) + limit;
+
+    return res.json({
+      message: 'success',
+      status: 200,
+      totalRecipes,
+      totalPages,
+      nextCursor,
+      data: results,
+    });
+  } catch (error) {
+    console.log('error while searching recipes', error);
+    return res.status(500).json({
+      message: 'error',
+      status: 500,
+      error: error.message,
     });
   }
 };
