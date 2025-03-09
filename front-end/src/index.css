@@ -206,17 +206,18 @@ body {
   border-bottom: 0.2px solid rgba(0, 0, 0, 0.1);
 }
 
+/* Comment Section Base Style */
 .comment-section {
   margin-top: 40px;
   padding: 20px;
-  background-color: #fdf7f4; /* Consistent with recipe detail background */
+  background-color: #fdf7f4; /* same as recipe details background */
   border-radius: 10px;
   border: 1px solid rgba(169, 169, 169, 0.1);
 }
 
 .comment-section h3 {
   font-size: 24px;
-  color: #528135; /* Use the same accent color as your recipe titles */
+  color: #528135;
   margin-bottom: 20px;
 }
 
@@ -224,10 +225,25 @@ body {
   margin-bottom: 20px;
 }
 
-.comment-section .comments-list div {
+.comment-item {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
   margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #ccc;
+  background-color: #fff;
+  font-family: "Nunito Sans", sans-serif;
+}
+
+.comment-item strong {
+  color: #528135;
+}
+
+.comment-item p {
+  margin: 5px 0;
+}
+
+.comment-item small {
+  color: #666;
 }
 
 .comment-section .add-comment textarea {
@@ -236,6 +252,41 @@ body {
   padding: 10px;
   border: 1px solid #ccc;
   font-family: "Nunito Sans", sans-serif;
+}
+
+/* Mobile Scaling for Comment Section */
+@media (max-width: 768px) {
+  .comment-section {
+    margin: 20px 10px;
+    padding: 15px;
+  }
+  .comment-section h3 {
+    font-size: 20px;
+  }
+  .comment-item {
+    font-size: 14px;
+    padding: 8px;
+  }
+  .comment-section .add-comment textarea {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 769px) {
+  .comment-section {
+    margin-top: 40px;
+    padding: 20px;
+  }
+  .comment-section h3 {
+    font-size: 24px;
+  }
+  .comment-item {
+    font-size: 16px;
+    padding: 10px;
+  }
+  .comment-section .add-comment textarea {
+    font-size: 16px;
+  }
 }
 
 .comment-item {
