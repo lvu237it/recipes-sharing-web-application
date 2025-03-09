@@ -1,4 +1,5 @@
 const Comment = require("../models/commentModel");
+const User = require("../models/userModel");
 const {
   isValidObjectId,
   isValidUser,
@@ -54,10 +55,15 @@ exports.adminAddComment = async (req, res) => {
         .json({ error: "Unauthorised: User is not an admin." });
     }
 
+    // Retrieve the admin's user data for caching
+    const adminUser = await User.findById(adminId);
+
     const newComment = new Comment({
       content,
       user: adminId,
       recipe: recipeId,
+      authorUsername: adminUser.username,
+      authorImageUrl: adminUser.avatar,
     });
     await newComment.save();
     res.status(201).json(newComment);
@@ -90,7 +96,16 @@ exports.userAddComment = async (req, res) => {
       return res.status(404).json({ error: "Recipe does not exist." });
     }
 
-    const newComment = new Comment({ content, user: userId, recipe: recipeId });
+    // Retrieve the user's data for caching
+    const user = await User.findById(userId);
+
+    const newComment = new Comment({
+      content,
+      user: userId,
+      recipe: recipeId,
+      authorUsername: user.username,
+      authorImageUrl: user.avatar,
+    });
     await newComment.save();
     res.status(201).json(newComment);
   } catch (error) {
