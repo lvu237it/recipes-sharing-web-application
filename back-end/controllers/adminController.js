@@ -7,7 +7,9 @@ const Recipe = require('../models/recipeModel');
 exports.getAllRecipe = async (req, res) => {
   try {
     // Kiểm tra quyền admin
+    console.log(req.user);
     if (!req.user || req.user.role !== 'admin') {
+
       return res
         .status(403)
         .json({ status: 'error', message: 'Access denied. Admins only!' });
@@ -16,7 +18,7 @@ exports.getAllRecipe = async (req, res) => {
     const { page = 1, limit = 10 } = req.query;
 
     const recipes = await Recipe.find({})
-      .select('title foodCategories description createdAt owner')
+      .select('title foodCategories description createdAt owner status imageUrl')
       .populate('owner', 'username email')
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -49,7 +51,6 @@ exports.getRecipeDetails = async (req, res) => {
 
     const { recipeId } = req.params;
     const recipe = await Recipe.findById(recipeId)
-      .select('title foodCategories description createdAt owner')
       .populate('owner', 'username email');
 
     if (!recipe) {
