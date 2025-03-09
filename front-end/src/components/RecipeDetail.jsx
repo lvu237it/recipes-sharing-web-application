@@ -30,6 +30,7 @@ function RecipeDetail() {
     savedRecipeIds,
     openOptionsRecipeDetailModal,
     setOpenOptionsRecipeDetailModal,
+    setSearchRecipeInput,
   } = useCommon();
 
   const [recipeViewDetails, setRecipeViewDetails] = useState(null);
@@ -258,6 +259,89 @@ function RecipeDetail() {
               )}
             </div>
           </div>
+          <div style={{ position: "absolute", right: 0 }}>
+            <PiDotsThreeOutlineVerticalThin
+              onClick={() =>
+                setOpenOptionsRecipeDetailModal(!openOptionsRecipeDetailModal)
+              }
+              title="Thao tác"
+              className="pi-dots-three-outline-vertical-thin m-3 "
+              style={{
+                fontSize: 32,
+                padding: 5,
+                borderRadius: "99%",
+                color: "black",
+              }}
+            />
+            {openOptionsRecipeDetailModal && (
+              <div
+                ref={modalOptionsRecipeDetailRef}
+                className="options-modal border shadow-sm"
+                style={{
+                  position: "absolute",
+                  width: "190px",
+                  top: 50,
+                  right: 20,
+                  backgroundColor: "white",
+                  borderRadius: "10px",
+                }}
+              >
+                <div className="p-3">
+                  <div
+                    className="p-2 options-modal-detail"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "120px 1fr",
+                    }}
+                    onClick={() => handleSaveToggle(recipeViewDetails?._id)}
+                  >
+                    <div>
+                      {savedRecipeIds.includes(recipeViewDetails?._id)
+                        ? "Bỏ lưu"
+                        : "Lưu công thức"}
+                    </div>
+                    {savedRecipeIds.includes(recipeViewDetails?._id) ? (
+                      <BiBookmarkMinus style={{ margin: "auto" }} />
+                    ) : (
+                      <BiBookmark style={{ margin: "auto" }} />
+                    )}
+                  </div>
+                  <div
+                    className="p-2 options-modal-detail"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "120px 1fr",
+                    }}
+                  >
+                    <div>Đổi trạng thái</div>
+                    <FaChevronRight style={{ margin: "auto" }} />
+                  </div>
+                  <div
+                    className="p-2 options-modal-detail"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "120px 1fr",
+                    }}
+                  >
+                    <div>Chỉnh sửa</div>
+                    <BiPencil style={{ margin: "auto" }} />
+                  </div>
+                  <div
+                    className="p-2 options-modal-detail"
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "120px 1fr",
+                      color: "red",
+                    }}
+                    onClick={() => handleDeleteRecipe(recipeViewDetails?._id)}
+                  >
+                    <div>Xoá công thức</div>
+                    <BiTrashAlt style={{ margin: "auto" }} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -358,7 +442,7 @@ function RecipeDetail() {
           >
             <Table bordered responsive>
               <th
-                className='py-2'
+                className="py-2"
                 style={{
                   color: "#528135",
                   fontSize: 24,
@@ -422,9 +506,21 @@ function RecipeDetail() {
           </div>
         </div>
 
-        {/* Append the CommentSection at the end */}
-        <div className="comment-section">
-          <h3>Comments</h3>
+        {/* Minimal modification: Append CommentSection at the end */}
+        <div
+          style={{
+            marginTop: "40px",
+            padding: "20px",
+            backgroundColor: "#fdf7f4",
+            borderRadius: "10px",
+            border: "1px solid rgba(169, 169, 169, 0.1)",
+          }}
+        >
+          <h3
+            style={{ color: "#528135", fontSize: "24px", marginBottom: "20px" }}
+          >
+            Comments
+          </h3>
           <CommentSection recipeId={recipeViewDetails?._id} />
         </div>
       </div>
