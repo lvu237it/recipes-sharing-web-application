@@ -31,6 +31,8 @@ function RecipesList() {
     setCurrentPage,
     generatePageNumbers,
     totalPages,
+    searchRecipeInput,
+    setSearchRecipeInput,
   } = useCommon();
 
   // Modal for creating new recipe
@@ -53,8 +55,6 @@ function RecipesList() {
   const [inputSource, setInputSource] = useState('');
   const [sourcesListForNewRecipe, setSourcesListForNewRecipe] = useState([]);
 
-  // Searching recipe by recipe name or ingredients
-  const [searchRecipeInput, setSearchRecipeInput] = useState('');
   // Thêm hook debounce
   const [debouncedSearchTerm] = useDebounce(searchRecipeInput, 300);
 
@@ -163,16 +163,6 @@ function RecipesList() {
 
       // Upload ảnh trực tiếp lên Cloudinary
       const uploadResponse = await uploadImageToCloudinary(imageRecipe);
-      // toast.promise(promise, {
-      //   loading: 'Đang tải ảnh lên, vui lòng chờ...',
-      //   success: () => {
-      //     if (uploadResponse) {
-      //       console.log('Upload image to cloudinary successfully!');
-      //       return `Tải ảnh thành công!`;
-      //     }
-      //   },
-      //   error: 'Đã có lỗi xảy ra trong quá trình tải ảnh lên.',
-      // });
 
       formData.append('imageUrl', uploadResponse); // Đính kèm URL ảnh đã upload
 
@@ -275,7 +265,9 @@ function RecipesList() {
                 placeholder='Nhập tên món hoặc nguyên liệu'
                 className='w-75 w-md-100'
                 value={searchRecipeInput}
-                onChange={(e) => setSearchRecipeInput(e.target.value)}
+                onChange={(e) => {
+                  setSearchRecipeInput(e.target.value);
+                }}
               />
             </Col>
 
@@ -692,30 +684,30 @@ function RecipesList() {
             </Modal.Footer>
           </Modal>
 
-          {recipes.length === 0 ? (
-            // Loading recipes
-            <div className=''>Đang tải công thức...</div>
-          ) : filteredRecipes.length === 0 && selectedCategory !== 'all' ? (
-            // Not found recipes with selected category
-            <div className=''>Không tìm thấy {selectedCategory} phù hợp</div>
-          ) : filteredRecipes.length === 0 && searchRecipeInput !== '' ? (
+          {/* Recipe display logic */}
+          {filteredRecipes.length === 0 && searchRecipeInput !== '' ? (
             // Not found recipes with search input
             <div className=''>
               Không tìm thấy công thức hoặc nguyên liệu nào trùng với "
               {searchRecipeInput}"
             </div>
+          ) : filteredRecipes.length === 0 && selectedCategory !== 'all' ? (
+            // Not found recipes with selected category
+            <div className=''>Không tìm thấy {selectedCategory} phù hợp</div>
+          ) : recipes.length === 0 ? (
+            // Loading recipes
+            <div className=''>Đang tải công thức...</div>
           ) : (
             <div
               className='recipe-list-wrapper-border border'
               style={{
                 borderRadius: '10px',
                 backgroundColor: '#fdf7f4',
-                borderColor: 'rgba(169, 169, 169, 0.1)', // Màu xám với độ mờ 50%
+                borderColor: 'rgba(169, 169, 169, 0.1)',
               }}
             >
               {filteredRecipes.map((recipe) => {
                 const isSaved = savedRecipeIds.includes(recipe._id);
-
                 return (
                   <div className='p-4' key={recipe._id}>
                     <div
@@ -782,43 +774,83 @@ function RecipesList() {
             </div>
           )}
 
-          <div className='d-flex justify-content-center gap-3 m-3'>
-            {/* Hiển thị các nút phân trang */}
-            {currentPage > 1 && (
-              <button
-                className='button-clicked-pagination rounded px-3 py-2'
-                style={
-                  {
-                    // borderWidth: 0.1,
-                    // borderColor: 'rgba(169, 169, 169, 0.1)', // Màu xám với độ mờ 50%
-                  }
-                }
-                onClick={() => setCurrentPage(currentPage - 1)}
-              >
-                Trang trước
-              </button>
-            )}
+          {/* Pagination for default case (no search) */}
+          {searchRecipeInput === '' && (
+            <div className='d-flex justify-content-center gap-3 m-3'>
+              {currentPage > 1 && (
+                <button
+                  className='button-clicked-pagination rounded px-3 py-2'
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                >
+                  Trang trước
+                </button>
+              )}
 
-            {generatePageNumbers().map((page) => (
-              <button
-                className='button-clicked-pagination rounded rounded px-3 py-2'
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                disabled={page === currentPage}
-              >
-                {page}
-              </button>
-            ))}
+              {generatePageNumbers().map((page) => (
+                <button
+                  className='button-clicked-pagination rounded px-3 py-2'
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  disabled={page === currentPage}
+                  style={{
+                    backgroundColor: page === currentPage ? '#528135' : '',
+                    color: page === currentPage ? 'white' : '',
+                    minWidth: '40px',
+                  }}
+                >
+                  {page}
+                </button>
+              ))}
 
-            {currentPage < totalPages && (
-              <button
-                className='button-clicked-pagination rounded rounded px-3 py-2'
-                onClick={() => setCurrentPage(currentPage + 1)}
-              >
-                Trang sau
-              </button>
-            )}
-          </div>
+              {currentPage < totalPages && (
+                <button
+                  className='button-clicked-pagination rounded px-3 py-2'
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                >
+                  Trang sau
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Pagination for search results */}
+          {searchRecipeInput !== '' && filteredRecipes.length > 0 && (
+            <div className='d-flex justify-content-center gap-3 m-3'>
+              {currentPage > 1 && (
+                <button
+                  className='button-clicked-pagination rounded px-3 py-2'
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                >
+                  Trang trước
+                </button>
+              )}
+
+              {generatePageNumbers().map((page) => (
+                <button
+                  className='button-clicked-pagination rounded px-3 py-2'
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  disabled={page === currentPage}
+                  style={{
+                    backgroundColor: page === currentPage ? '#528135' : '',
+                    color: page === currentPage ? 'white' : '',
+                    minWidth: '40px',
+                  }}
+                >
+                  {page}
+                </button>
+              ))}
+
+              {currentPage < totalPages && (
+                <button
+                  className='button-clicked-pagination rounded px-3 py-2'
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                >
+                  Trang sau
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -179,7 +179,9 @@ body {
 }
 
 .button-clicked-pagination:hover {
-  background-color: rgba(197, 197, 197, 0.1);
+  /* background-color: rgba(197, 197, 197, 0.1); */
+  background: #528135;
+  color: white;
   transition: 0.3s ease-in-out;
 }
 
@@ -187,8 +189,8 @@ body {
   /* background-color: rgba(169, 169, 169, 0.3); Màu nền khi nút bị vô hiệu hóa */
   /* border-color: rgba(169, 169, 169, 0.3); Màu viền khi nút bị vô hiệu hóa */
   /* cursor: not-allowed; Đổi con trỏ thành not-allowed khi nút bị vô hiệu hóa */
+  background: #528135;
   color: white;
-  background-color: black;
 }
 
 .recipe-detail-header {
