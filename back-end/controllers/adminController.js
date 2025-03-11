@@ -6,27 +6,40 @@ const Recipe = require('../models/recipeModel');
 //get all recipes for admin role
 exports.getAllRecipe = async (req, res) => {
   try {
-    // Kiểm tra quyền admin
-    console.log(req.user);
-    if (!req.user || req.user.role !== 'admin') {
+    console.log("Received query params:", req.query);
 
-      return res
-        .status(403)
-        .json({ status: 'error', message: 'Access denied. Admins only!' });
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).json({
+        status: "error",
+        message: "Access denied. Admins only!",
+      });
     }
 
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, title, category, status } = req.query;
+    let filter = {};
 
-    const recipes = await Recipe.find({})
-      .select('title foodCategories description createdAt owner status imageUrl')
-      .populate('owner', 'username email')
+    if (title) {
+      filter.title = { $regex: title, $options: "i" }; // Tìm kiếm không phân biệt hoa thường
+    }
+    if (category) {
+      filter.foodCategories = category; // Giả sử category lưu trong `foodCategories`
+    }
+    if (status) {
+      filter.status = status;
+    }
+
+    console.log("Query Filter:", filter);
+
+    const recipes = await Recipe.find(filter)
+      .select("title foodCategories description createdAt owner status imageUrl")
+      .populate("owner", "username email")
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
 
-    const totalRecipes = await Recipe.countDocuments();
+    const totalRecipes = await Recipe.countDocuments(filter);
 
     res.status(200).json({
-      status: 'success',
+      status: "success",
       results: recipes.length,
       totalRecipes,
       currentPage: parseInt(page),
@@ -34,7 +47,7 @@ exports.getAllRecipe = async (req, res) => {
       data: recipes,
     });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    res.status(500).json({ status: "error", message: error.message });
   }
 };
 
