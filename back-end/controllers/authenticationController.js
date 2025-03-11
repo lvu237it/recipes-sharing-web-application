@@ -3,7 +3,10 @@ const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/sendMail");
-const { generateAccessToken, generateRefreshToken } = require('../middlewares/jwt')
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require("../middlewares/jwt");
 exports.registerUser = async (req, res) => {
   try {
     // Lấy dữ liệu từ request body
@@ -46,113 +49,123 @@ exports.registerUser = async (req, res) => {
   } catch (error) {
     console.error("Error while registering user:", error);
     res.status(500).json({
-      error,                 
+      error,
     });
   }
 };
 exports.loginUser = async (req, res) => {
-    try {
-      const { email, password } = req.body;
-  
-      // Kiểm tra xem có nhập đủ thông tin không
-      if (!email || !password) {
-        return res.status(400).json({
-          message: "Missing email or password",
-          status: 400,
-        });
-      }
-  
-      // Tìm user theo email
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(401).json({
-          message: "Invalid email ",
-          status: 401,
-        });
-      }
-  
-      // Kiểm tra mật khẩu
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({
-          message: "Invalid password",
-          status: 401,
-        });
-      }
-  // Tạo token truy cập và token refresh
-  const {  role, refreshToken, ...userData } = user.toObject();
-  const accessToken = generateAccessToken(user._id, role);
-  const newRefreshToken = generateRefreshToken(user._id);
+  try {
+    const { email, password } = req.body;
 
-  // Cập nhật token refresh trong database
-  await User.findByIdAndUpdate(user._id, { refreshToken: newRefreshToken }, { new: true });
-
-  // Thiết lập cookie chứa token refresh
-  res.cookie("refreshToken", newRefreshToken, {
-    httpOnly: true,
-    maxAge: 15 * 60 *1000 , // 15'
-  });
-
-  // Phản hồi thông tin thành công
-  res.status(200).json({
-    success: true,
-    accessToken,
-    userData,
-  });
-    } catch (error) {
-      console.error("Error while logging in:", error);
-      res.status(500).json({
-        message: "Internal Server Error",
-        status: 500,
-        error,
+    // Kiểm tra xem có nhập đủ thông tin không
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Missing email or password",
+        status: 400,
       });
     }
-  };
-  exports.getCurrentUser = async (req, res) => {
-    const { _id } = req.user;
-    const user = await User.findById(_id).select('-refreshToken -password -role');
-    res.status(200).json({
-        success: !!user,
-        user: user || 'User not found'
+
+    // Tìm user theo email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid email ",
+        status: 401,
+      });
+    }
+
+    // Kiểm tra mật khẩu
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Invalid password",
+        status: 401,
+      });
+    }
+    // Tạo token truy cập và token refresh
+    const { role, refreshToken, ...userData } = user.toObject();
+    const accessToken = generateAccessToken(user._id, role);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    // Cập nhật token refresh trong database
+    await User.findByIdAndUpdate(
+      user._id,
+      { refreshToken: newRefreshToken },
+      { new: true }
+    );
+
+    // Thiết lập cookie chứa token refresh
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      maxAge: 15 * 60 * 1000, // 15'
     });
+
+    // Phản hồi thông tin thành công
+    res.status(200).json({
+      success: true,
+      accessToken,
+      userData,
+    });
+  } catch (error) {
+    console.error("Error while logging in:", error);
+    res.status(500).json({
+      message: "Internal Server Error",
+      status: 500,
+      error,
+    });
+  }
+};
+exports.getCurrentUser = async (req, res) => {
+  const { _id } = req.user;
+  const user = await User.findById(_id).select("-refreshToken -password -role");
+  res.status(200).json({
+    success: !!user,
+    user: user || "User not found",
+  });
 };
 
 exports.refreshAccessToken = async (req, res) => {
-    const { refreshToken } = req.cookies;
-    if (!refreshToken) throw new Error('No refresh token in cookies');
+  const { refreshToken } = req.cookies;
+  if (!refreshToken) throw new Error("No refresh token in cookies");
 
-    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
-    const user = await User.findOne({ _id: decoded._id, refreshToken });
+  const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+  const user = await User.findOne({ _id: decoded._id, refreshToken });
 
-    res.status(200).json({
-        success: !!user,
-        newAccessToken: user ? generateAccessToken(user._id, user.role) : 'Refresh token not matched'
-    });
+  res.status(200).json({
+    success: !!user,
+    newAccessToken: user
+      ? generateAccessToken(user._id, user.role)
+      : "Refresh token not matched",
+  });
 };
 
 exports.logoutUser = async (req, res) => {
-    const { refreshToken } = req.cookies;
-    if (!refreshToken) throw new Error('No refresh token in cookies');
+  const { refreshToken } = req.cookies;
+  if (!refreshToken) throw new Error("No refresh token in cookies");
 
-    await User.findOneAndUpdate({ refreshToken }, { refreshToken: '' }, { new: true });
-    res.clearCookie('refreshToken', { httpOnly: true, secure: true });
-    res.status(200).json({
-        success: true,
-        message: 'Logout successful'
-    });
+  await User.findOneAndUpdate(
+    { refreshToken },
+    { refreshToken: "" },
+    { new: true }
+  );
+  res.clearCookie("refreshToken", { httpOnly: true, secure: true });
+  res.status(200).json({
+    success: true,
+    message: "Logout successful",
+  });
 };
 
 exports.forgotPassword = async (req, res) => {
-    const { email } = req.query;
-    if (!email) throw new Error('Missing email');
+  const { email } = req.query;
+  if (!email) throw new Error("Missing email");
 
-    const user = await User.findOne({ email });
-    if (!user) throw new Error('User not found');
+  const user = await User.findOne({ email });
+  if (!user) throw new Error("User not found");
 
-    const resetToken = user.createPasswordChangedToken();
-    await user.save();
+  const resetToken = user.createPasswordChangedToken();
+  await user.save();
 
-    const html = `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -202,32 +215,34 @@ exports.forgotPassword = async (req, res) => {
 </body>
 </html>`;
 
-
-    const mailData = { email, html };
-    const mailResponse = await sendMail(mailData);
-    res.status(200).json({
-        success: true,
-        mailResponse
-    });
+  const mailData = { email, html };
+  const mailResponse = await sendMail(mailData);
+  res.status(200).json({
+    success: true,
+    mailResponse,
+  });
 };
 
 exports.resetPassword = async (req, res) => {
-    const { password, token } = req.body;
-    if (!password || !token) throw new Error('Missing inputs');
+  const { password, token } = req.body;
+  if (!password || !token) throw new Error("Missing inputs");
 
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-    const user = await User.findOne({ passwordResetToken: hashedToken, passwordResetExpires: { $gt: Date.now() } });
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
 
-    if (!user) throw new Error('Invalid reset token');
+  if (!user) throw new Error("Invalid reset token");
 
-    user.password = password;
-    user.passwordResetToken = undefined;
-    user.passwordResetExpires = undefined;
-    user.passwordChangedAt = Date.now();
-    await user.save();
+  user.password = password;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  user.passwordChangedAt = Date.now();
+  await user.save();
 
-    res.status(200).json({
-        success: !!user,
-        message: user ? 'Password updated' : 'Something went wrong'
-    });
+  res.status(200).json({
+    success: !!user,
+    message: user ? "Password updated" : "Something went wrong",
+  });
 };

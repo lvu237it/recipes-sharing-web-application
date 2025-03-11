@@ -7,7 +7,9 @@ const recipeController = require('../controllers/recipeController');
 
 // Gọi tới các module xử lý request từ controller
 router.get('/', recipeController.getAllRecipes);
+router.get('/search', recipeController.searchRecipesByQuery);
 router.get('/:recipeId', recipeController.getRecipeById);
+router.get('/:recipeId/populate', recipeController.getPopulateRecipeById);
 router.post(
   '/recipes-by-categories',
   recipeController.findAllRecipesByCategories

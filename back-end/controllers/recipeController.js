@@ -12,19 +12,30 @@ exports.getAllRecipes = async (req, res) => {
       .limit(parseInt(limit))
       .exec();
 
+    // Thay thế ký tự \n bằng thẻ <div>
+    const updatedResults = results.map((recipe) => ({
+      ...recipe._doc,
+      description: recipe.description
+        .replace(/'/g, '"')
+        .split('\n')
+        .map((line) => `<div>${line}</div>`)
+        .join(''),
+    }));
+
     const totalRecipes = await Recipe.countDocuments({ isDeleted: false }); // Đếm tổng số công thức
 
     const totalPages = Math.ceil(totalRecipes / limit); // Tính tổng số trang
 
     // Trả về dữ liệu và nextCursor
-    const nextCursor = results.length < limit ? null : skip + limit;
+    const nextCursor = updatedResults.length < limit ? null : skip + limit;
 
     return res.json({
       message: 'success',
       status: 200,
-      data: results,
+      totalRecipes,
       totalPages,
       nextCursor,
+      data: updatedResults,
     });
   } catch (error) {
     console.log('error while getting recipes', error);
@@ -49,6 +60,30 @@ exports.getRecipeById = async (req, res) => {
     });
   } catch (error) {
     console.log('error while getting recipes by id', error);
+    return res.json({
+      message: 'error',
+      status: 404,
+      error,
+    });
+  }
+};
+
+// Get populated recipe by recipe id
+exports.getPopulateRecipeById = async (req, res) => {
+  try {
+    const { recipeId } = req.params;
+    const results = await Recipe.find({
+      _id: recipeId,
+      isDeleted: false,
+    }).populate('owner', 'username avatar');
+
+    return res.json({
+      message: 'success',
+      status: 200,
+      data: results,
+    });
+  } catch (error) {
+    console.log('error while getting populated recipes by id', error);
     return res.json({
       message: 'error',
       status: 404,
@@ -228,6 +263,7 @@ exports.updateRecipe = async (req, res) => {
       ingredients,
       steps,
       sources,
+      status,
     } = req.body;
     const { recipeId } = req.params;
 
@@ -252,6 +288,7 @@ exports.updateRecipe = async (req, res) => {
       description,
       ingredients,
       steps,
+      status,
       sources,
       updatedAt: Date.now(),
     };
@@ -313,6 +350,72 @@ exports.deleteRecipe = async (req, res) => {
     return res.status(500).json({
       message: 'Server error',
       status: 500,
+    });
+  }
+};
+
+// Search recipes by title or ingredients
+exports.searchRecipesByQuery = async (req, res) => {
+  try {
+    const { query = '', limit = 10, cursor = 0 } = req.query;
+
+    if (!query.trim()) {
+      return res.json({
+        message: 'success',
+        status: 200,
+        data: [],
+        totalPages: 0,
+        nextCursor: null,
+      });
+    }
+
+    // Create search query for both title and ingredients
+    const searchQuery = {
+      isDeleted: false,
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { ingredients: { $elemMatch: { $regex: query, $options: 'i' } } },
+      ],
+    };
+
+    // Get total count for pagination
+    const totalRecipes = await Recipe.countDocuments(searchQuery);
+    const totalPages = Math.ceil(totalRecipes / limit);
+
+    // Get paginated results
+    const results = await Recipe.find(searchQuery)
+      .skip(parseInt(cursor))
+      .limit(parseInt(limit))
+      .exec();
+
+    // Thay thế ký tự \n bằng thẻ <div>
+    const updatedResults = results.map((recipe) => ({
+      ...recipe._doc,
+      description: recipe.description
+        .replace(/'/g, '"')
+        .split('\n')
+        .map((line) => `<div>${line}</div>`)
+        .join(''),
+    }));
+
+    // Calculate next cursor
+    const nextCursor =
+      updatedResults.length < limit ? null : parseInt(cursor) + limit;
+
+    return res.json({
+      message: 'success',
+      status: 200,
+      totalRecipes,
+      totalPages,
+      nextCursor,
+      data: updatedResults,
+    });
+  } catch (error) {
+    console.log('error while searching recipes', error);
+    return res.status(500).json({
+      message: 'error',
+      status: 500,
+      error: error.message,
     });
   }
 };

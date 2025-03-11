@@ -13,6 +13,8 @@ export const Common = ({ children }) => {
   const [filteredRecipes, setFilteredRecipes] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortOrder, setSortOrder] = useState('latest');
+  // Searching recipe by recipe name or ingredients
+  const [searchRecipeInput, setSearchRecipeInput] = useState('');
 
   const [openOptionsRecipeDetailModal, setOpenOptionsRecipeDetailModal] =
     useState(false);
@@ -61,39 +63,83 @@ export const Common = ({ children }) => {
   const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
   const [totalPages, setTotalPages] = useState(0); // Tổng số trang
 
-  // Fetch recipes
-  useEffect(() => {
-    async function getRecipes(page) {
-      try {
-        const limit = 10; // Số lượng công thức mỗi trang
-        const cursor = (page - 1) * limit; // Tính toán giá trị cursor dựa trên trang hiện tại
-        const response = await axios.get('http://localhost:3000/recipes', {
-          params: { limit, cursor },
-        });
+  const isMobile = useMediaQuery({ maxWidth: 768 });
 
-        setRecipes(response.data.data);
-        setTotalPages(response.data.totalPages); // Lưu tổng số trang
-      } catch (error) {
-        console.error('Failed to fetch recipes:', error);
-      }
+  // Fetch recipes based on the current page
+  const getRecipes = async (page) => {
+    try {
+      const limit = 10; // Số lượng công thức mỗi trang
+      const cursor = (page - 1) * limit; // Tính toán giá trị cursor dựa trên trang hiện tại
+      const response = await axios.get('http://localhost:3000/recipes', {
+        params: { limit, cursor },
+      });
+
+      setRecipes(response.data.data);
+      setTotalPages(response.data.totalPages); // Lưu tổng số trang
+    } catch (error) {
+      console.error('Failed to fetch recipes:', error);
     }
+  };
 
-    getRecipes(currentPage); // Gọi API khi trang thay đổi
-  }, [currentPage]);
+  // Fetch recipes based on the search input
+  const getRecipesBySearch = async (searchRecipeInput) => {
+    try {
+      const limit = 10;
+      const cursor = (currentPage - 1) * limit;
+      const response = await axios.get(`http://localhost:3000/recipes/search`, {
+        params: {
+          query: searchRecipeInput,
+          limit,
+          cursor,
+        },
+      });
 
-  // Tạo một mảng chứa các page buttons (tối đa 5 trang)
+      if (response.data.status === 200) {
+        setRecipes(response.data.data);
+        setTotalPages(response.data.totalPages);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recipes:', error);
+    }
+  };
+
+  // Effect to reset page when search input changes
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchRecipeInput]);
+
+  // Fetch recipes based on the current page and search input
+  useEffect(() => {
+    if (searchRecipeInput === '') {
+      getRecipes(currentPage);
+    } else {
+      getRecipesBySearch(searchRecipeInput);
+    }
+  }, [currentPage, searchRecipeInput]);
+
+  // Tạo một mảng chứa các page buttons
   const generatePageNumbers = () => {
     const pageNumbers = [];
-    let start = Math.max(currentPage - 2, 1);
-    let end = Math.min(currentPage + 2, totalPages);
 
-    for (let i = start; i <= end; i++) {
-      pageNumbers.push(i);
+    if (isMobile) {
+      // Trên mobile: chỉ hiển thị trang hiện tại
+      pageNumbers.push(currentPage);
+    } else {
+      // Trên desktop: hiển thị 5 trang
+      let start = Math.max(currentPage - 2, 1);
+      let end = Math.min(currentPage + 2, totalPages);
+
+      for (let i = start; i <= end; i++) {
+        pageNumbers.push(i);
+      }
     }
 
     return pageNumbers;
   };
 
+  // SaverId là id của user đã lưu công thức
   const saverId = '67bf0492b8e677402c59129c';
 
   // Fetch saved recipes khi mount và khi saverId thay đổi
@@ -157,6 +203,7 @@ export const Common = ({ children }) => {
     }
   };
 
+  // Lưu công thức vào danh sách yêu thích
   const handleSaveRecipe = async (recipeId) => {
     try {
       const response = await axios.post(
@@ -227,6 +274,8 @@ export const Common = ({ children }) => {
         setCurrentPage,
         generatePageNumbers,
         totalPages,
+        searchRecipeInput,
+        setSearchRecipeInput,
       }}
     >
       {children}

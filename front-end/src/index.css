@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Playwrite+DK+Uloopet:wght@100..400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Playwrite+CU:wght@100..400&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Playwrite+DK+Uloopet:wght@100..400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Playwrite+CU:wght@100..400&display=swap");
 
 :root {
   /* font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; */
@@ -18,7 +18,7 @@
 
 html,
 body {
-  font-family: 'Nunito Sans', sans-serif;
+  font-family: "Nunito Sans", sans-serif;
 }
 
 .no-scroll {
@@ -53,7 +53,7 @@ body {
 }
 
 #title-header-recipe-list {
-  font-family: 'Playwrite CU', sans-serif;
+  font-family: "Playwrite CU", sans-serif;
 }
 
 .button-save-unsave-recipe {
@@ -98,7 +98,7 @@ body {
 
 .ri-arrow-go-back-line-recipe-detail:hover,
 .pi-dots-three-outline-vertical-thin:hover {
-  border: '0.1px solid gray';
+  border: "0.1px solid gray";
   cursor: pointer;
   background: #e5e7eb;
   transition: 0.3s ease-in-out;
@@ -179,7 +179,9 @@ body {
 }
 
 .button-clicked-pagination:hover {
-  background-color: rgba(197, 197, 197, 0.1);
+  /* background-color: rgba(197, 197, 197, 0.1); */
+  background: #528135;
+  color: white;
   transition: 0.3s ease-in-out;
 }
 
@@ -187,6 +189,119 @@ body {
   /* background-color: rgba(169, 169, 169, 0.3); Màu nền khi nút bị vô hiệu hóa */
   /* border-color: rgba(169, 169, 169, 0.3); Màu viền khi nút bị vô hiệu hóa */
   /* cursor: not-allowed; Đổi con trỏ thành not-allowed khi nút bị vô hiệu hóa */
+  background: #528135;
   color: white;
-  background-color: black;
+}
+
+.recipe-detail-header {
+  width: 100%;
+  background-color: #f7f0ed; /* Matches your recipe detail background */
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 0.2px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Comment Section Base Style */
+.comment-section {
+  margin-top: 40px;
+  padding: 20px;
+  background-color: #fdf7f4; /* same as recipe details background */
+  border-radius: 10px;
+  border: 1px solid rgba(169, 169, 169, 0.1);
+}
+
+.comment-section h3 {
+  font-size: 24px;
+  color: #528135;
+  margin-bottom: 20px;
+}
+
+.comment-section .comments-list {
+  margin-bottom: 20px;
+}
+
+.comment-item {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 15px;
+  background-color: #fff;
+  font-family: "Nunito Sans", sans-serif;
+}
+
+.comment-item strong {
+  color: #528135;
+}
+
+.comment-item p {
+  margin: 5px 0;
+}
+
+.comment-item small {
+  color: #666;
+}
+
+.comment-section .add-comment textarea {
+  width: 100%;
+  border-radius: 5px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  font-family: "Nunito Sans", sans-serif;
+}
+
+/* Mobile Scaling for Comment Section */
+@media (max-width: 768px) {
+  .comment-section {
+    margin: 20px 10px;
+    padding: 15px;
+  }
+  .comment-section h3 {
+    font-size: 20px;
+  }
+  .comment-item {
+    font-size: 14px;
+    padding: 8px;
+  }
+  .comment-section .add-comment textarea {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 769px) {
+  .comment-section {
+    margin-top: 40px;
+    padding: 20px;
+  }
+  .comment-section h3 {
+    font-size: 24px;
+  }
+  .comment-item {
+    font-size: 16px;
+    padding: 10px;
+  }
+  .comment-section .add-comment textarea {
+    font-size: 16px;
+  }
+}
+
+.comment-item {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 15px;
+  background-color: #fff;
+}
+.comment-item strong {
+  color: #528135;
+}
+.comment-item p {
+  margin: 5px 0;
+}
+.comment-item small {
+  color: #666;
 }
