@@ -4,15 +4,34 @@ const AppError = require('../utils/appError');
 // Get all recipes
 exports.getAllRecipes = async (req, res) => {
   try {
-    const { limit = 10, cursor = null } = req.query; // Thêm tham số limit và cursor
-    const skip = cursor ? parseInt(cursor) : 0;
+    const { limit = 10, cursor = 0, category, sortOrder } = req.query;
+    const query = { isDeleted: false };
 
-    const results = await Recipe.find({ isDeleted: false })
-      .skip(skip)
+    // Add category filter if specified
+    if (category) {
+      query.foodCategories = category;
+    }
+
+    // Get total count before pagination
+    const totalRecipes = await Recipe.countDocuments(query);
+    const totalPages = Math.ceil(totalRecipes / limit);
+
+    // Create sort object
+    let sortObj = {};
+    if (sortOrder === 'latest') {
+      sortObj = { createdAt: -1 };
+    } else if (sortOrder === 'oldest') {
+      sortObj = { createdAt: 1 };
+    }
+
+    // Get paginated results
+    const results = await Recipe.find(query)
+      .sort(sortObj)
+      .skip(parseInt(cursor))
       .limit(parseInt(limit))
       .exec();
 
-    // Thay thế ký tự \n bằng thẻ <div>
+    // Format description
     const updatedResults = results.map((recipe) => ({
       ...recipe._doc,
       description: recipe.description
@@ -22,27 +41,19 @@ exports.getAllRecipes = async (req, res) => {
         .join(''),
     }));
 
-    const totalRecipes = await Recipe.countDocuments({ isDeleted: false }); // Đếm tổng số công thức
-
-    const totalPages = Math.ceil(totalRecipes / limit); // Tính tổng số trang
-
-    // Trả về dữ liệu và nextCursor
-    const nextCursor = updatedResults.length < limit ? null : skip + limit;
-
     return res.json({
       message: 'success',
       status: 200,
       totalRecipes,
       totalPages,
-      nextCursor,
       data: updatedResults,
     });
   } catch (error) {
     console.log('error while getting recipes', error);
-    return res.json({
+    return res.status(500).json({
       message: 'error',
-      status: 404,
-      error,
+      status: 500,
+      error: error.message,
     });
   }
 };
@@ -357,7 +368,13 @@ exports.deleteRecipe = async (req, res) => {
 // Search recipes by title or ingredients
 exports.searchRecipesByQuery = async (req, res) => {
   try {
-    const { query = '', limit = 10, cursor = 0 } = req.query;
+    const {
+      query = '',
+      limit = 10,
+      cursor = 0,
+      category,
+      sortOrder,
+    } = req.query;
 
     if (!query.trim()) {
       return res.json({
@@ -365,11 +382,10 @@ exports.searchRecipesByQuery = async (req, res) => {
         status: 200,
         data: [],
         totalPages: 0,
-        nextCursor: null,
       });
     }
 
-    // Create search query for both title and ingredients
+    // Create search query
     const searchQuery = {
       isDeleted: false,
       $or: [
@@ -378,17 +394,31 @@ exports.searchRecipesByQuery = async (req, res) => {
       ],
     };
 
+    // Add category filter if specified
+    if (category) {
+      searchQuery.foodCategories = category;
+    }
+
+    // Create sort object
+    let sortObj = {};
+    if (sortOrder === 'latest') {
+      sortObj = { createdAt: -1 };
+    } else if (sortOrder === 'oldest') {
+      sortObj = { createdAt: 1 };
+    }
+
     // Get total count for pagination
     const totalRecipes = await Recipe.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalRecipes / limit);
 
     // Get paginated results
     const results = await Recipe.find(searchQuery)
+      .sort(sortObj)
       .skip(parseInt(cursor))
       .limit(parseInt(limit))
       .exec();
 
-    // Thay thế ký tự \n bằng thẻ <div>
+    // Format description
     const updatedResults = results.map((recipe) => ({
       ...recipe._doc,
       description: recipe.description
@@ -398,16 +428,11 @@ exports.searchRecipesByQuery = async (req, res) => {
         .join(''),
     }));
 
-    // Calculate next cursor
-    const nextCursor =
-      updatedResults.length < limit ? null : parseInt(cursor) + limit;
-
     return res.json({
       message: 'success',
       status: 200,
       totalRecipes,
       totalPages,
-      nextCursor,
       data: updatedResults,
     });
   } catch (error) {

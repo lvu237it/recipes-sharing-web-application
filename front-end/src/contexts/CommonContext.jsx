@@ -60,84 +60,72 @@ export const Common = ({ children }) => {
 
   const [savedRecipeIds, setSavedRecipeIds] = useState([]);
   const [nextCursor, setNextCursor] = useState(null); // State để lưu trữ cursor tiếp theo
-  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
-  const [totalPages, setTotalPages] = useState(0); // Tổng số trang
+  const [currentPage, setCurrentPage] = useState(0); // Changed to 0-based for react-paginate
+  const [totalPages, setTotalPages] = useState(0);
+  const [itemsPerPage] = useState(10);
+  const [isLoading, setIsLoading] = useState(false);
 
   const isMobile = useMediaQuery({ maxWidth: 768 });
 
-  // Fetch recipes based on the current page
-  const getRecipes = async (page) => {
+  // Get recipes with all possible filters
+  const getRecipes = async (page = 0) => {
+    setIsLoading(true);
     try {
-      const limit = 10; // Số lượng công thức mỗi trang
-      const cursor = (page - 1) * limit; // Tính toán giá trị cursor dựa trên trang hiện tại
-      const response = await axios.get('http://localhost:3000/recipes', {
-        params: { limit, cursor },
-      });
+      const cursor = page * itemsPerPage;
+      let response;
 
-      setRecipes(response.data.data);
-      setTotalPages(response.data.totalPages); // Lưu tổng số trang
-    } catch (error) {
-      console.error('Failed to fetch recipes:', error);
-    }
-  };
+      const params = {
+        limit: itemsPerPage,
+        cursor,
+        category: selectedCategory !== 'all' ? selectedCategory : undefined,
+        sortOrder,
+      };
 
-  // Fetch recipes based on the search input
-  const getRecipesBySearch = async (searchRecipeInput) => {
-    try {
-      const limit = 10;
-      const cursor = (currentPage - 1) * limit;
-      const response = await axios.get(`http://localhost:3000/recipes/search`, {
-        params: {
-          query: searchRecipeInput,
-          limit,
-          cursor,
-        },
-      });
+      if (searchRecipeInput) {
+        // Search case
+        response = await axios.get(`http://localhost:3000/recipes/search`, {
+          params: {
+            ...params,
+            query: searchRecipeInput,
+          },
+        });
+      } else {
+        // Normal case
+        response = await axios.get('http://localhost:3000/recipes', {
+          params,
+        });
+      }
 
       if (response.data.status === 200) {
         setRecipes(response.data.data);
         setTotalPages(response.data.totalPages);
+        setFilteredRecipes(response.data.data);
       }
     } catch (error) {
       console.error('Failed to fetch recipes:', error);
+      toast.error('Có lỗi xảy ra khi tải dữ liệu! Vui lòng thử lại.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Effect to reset page when search input changes
+  // Effect to handle pagination and filters
   useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
-  }, [searchRecipeInput]);
+    getRecipes(currentPage);
+  }, [currentPage, searchRecipeInput, selectedCategory, sortOrder]);
 
-  // Fetch recipes based on the current page and search input
-  useEffect(() => {
-    if (searchRecipeInput === '') {
-      getRecipes(currentPage);
-    } else {
-      getRecipesBySearch(searchRecipeInput);
-    }
-  }, [currentPage, searchRecipeInput]);
-
-  // Tạo một mảng chứa các page buttons
-  const generatePageNumbers = () => {
-    const pageNumbers = [];
-
-    if (isMobile) {
-      // Trên mobile: chỉ hiển thị trang hiện tại
-      pageNumbers.push(currentPage);
-    } else {
-      // Trên desktop: hiển thị 5 trang
-      let start = Math.max(currentPage - 2, 1);
-      let end = Math.min(currentPage + 2, totalPages);
-
-      for (let i = start; i <= end; i++) {
-        pageNumbers.push(i);
-      }
-    }
-
-    return pageNumbers;
+  // Handle page change
+  const handlePageChange = (selectedItem) => {
+    setCurrentPage(selectedItem.selected);
+    window.scrollTo(0, 0); // Scroll to top when page changes
   };
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    if (currentPage !== 0) {
+      setCurrentPage(0);
+    }
+  }, [searchRecipeInput, selectedCategory, sortOrder]);
 
   // SaverId là id của user đã lưu công thức
   const saverId = '67bf0492b8e677402c59129c';
@@ -272,10 +260,12 @@ export const Common = ({ children }) => {
         setOpenOptionsRecipeDetailModal,
         currentPage,
         setCurrentPage,
-        generatePageNumbers,
         totalPages,
         searchRecipeInput,
         setSearchRecipeInput,
+        isLoading,
+        handlePageChange,
+        itemsPerPage,
       }}
     >
       {children}

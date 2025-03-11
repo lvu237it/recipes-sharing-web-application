@@ -1,11 +1,20 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useDebounce } from 'use-debounce';
-import { Button, Image, Form, InputGroup, Col, Row } from 'react-bootstrap';
+import {
+  Button,
+  Image,
+  Form,
+  InputGroup,
+  Col,
+  Row,
+  Spinner,
+} from 'react-bootstrap';
 import { useCommon } from '../contexts/CommonContext';
 import { Link } from 'react-router-dom';
 import { Dropdown } from 'react-bootstrap';
 import { Modal } from 'react-bootstrap';
 import { BiPencil, BiImageAdd } from 'react-icons/bi';
+import ReactPaginate from 'react-paginate';
 import axios from 'axios';
 import { HiMiniBellAlert } from 'react-icons/hi2';
 
@@ -31,6 +40,8 @@ function RecipesList() {
     setCurrentPage,
     generatePageNumbers,
     totalPages,
+    handlePageChange,
+    isLoading,
     searchRecipeInput,
     setSearchRecipeInput,
   } = useCommon();
@@ -237,6 +248,61 @@ function RecipesList() {
 
   return (
     <>
+      <style>
+        {`
+          /* Custom styles for pagination */
+          .pagination-custom {
+            display: flex;
+            padding-left: 0;
+            list-style: none;
+            gap: 5px;
+          }
+
+          .pagination-custom .page-item .page-link {
+            padding: 8px 16px;
+            background-color: white;
+            border: 1px solid #dee2e6;
+            color: #528135;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin: 0 2px;
+          }
+
+          .pagination-custom .page-item .page-link:hover {
+            background-color: #528135;
+            color: white;
+            border-color: #528135;
+          }
+
+          .pagination-custom .page-item.active .page-link {
+            background-color: #528135;
+            border-color: #528135;
+            color: white;
+          }
+
+          .pagination-custom .page-item.disabled .page-link {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            color: #6c757d;
+            cursor: not-allowed;
+          }
+
+          /* Previous and Next buttons */
+          .pagination-custom .page-item:first-child .page-link,
+          .pagination-custom .page-item:last-child .page-link {
+            white-space: nowrap;
+            padding: 8px 16px;
+          }
+
+          /* Break (...) styling */
+          .pagination-custom .page-item.break .page-link {
+            background-color: transparent;
+            border: none;
+            color: #6c757d;
+          }
+        `}
+      </style>
+
       <Toaster richColors />
       <div className='' style={{ position: 'relative' }}>
         <div
@@ -249,7 +315,7 @@ function RecipesList() {
               md={3}
               id='title-header-recipe-list'
               className='text-center mb-4'
-              style={{ fontSize: 26 }}
+              style={{ fontSize: 30, fontWeight: 'bold' }}
             >
               Các công thức nấu ăn từ cộng đồng
             </Col>
@@ -685,171 +751,127 @@ function RecipesList() {
           </Modal>
 
           {/* Recipe display logic */}
-          {filteredRecipes.length === 0 && searchRecipeInput !== '' ? (
-            // Not found recipes with search input
-            <div className=''>
+          {isLoading ? (
+            <div className='d-flex justify-content-center my-5'>
+              <Spinner animation='border' variant='success' />
+            </div>
+          ) : filteredRecipes.length === 0 && searchRecipeInput !== '' ? (
+            <div className='text-center my-4'>
               Không tìm thấy công thức hoặc nguyên liệu nào trùng với "
               {searchRecipeInput}"
             </div>
           ) : filteredRecipes.length === 0 && selectedCategory !== 'all' ? (
-            // Not found recipes with selected category
-            <div className=''>Không tìm thấy {selectedCategory} phù hợp</div>
+            <div className='text-center my-4'>
+              Không tìm thấy {selectedCategory} phù hợp
+            </div>
           ) : recipes.length === 0 ? (
             // Loading recipes
             <div className=''>Đang tải công thức...</div>
           ) : (
-            <div
-              className='recipe-list-wrapper-border border'
-              style={{
-                borderRadius: '10px',
-                backgroundColor: '#fdf7f4',
-                borderColor: 'rgba(169, 169, 169, 0.1)',
-              }}
-            >
-              {filteredRecipes.map((recipe) => {
-                const isSaved = savedRecipeIds.includes(recipe._id);
-                return (
-                  <div className='p-4' key={recipe._id}>
-                    <div
-                      key={recipe._id}
-                      className='wrapper-image-and-content d-md-grid d-flex flex-column gap-3'
-                    >
-                      <Image
-                        className='an-image-in-recipe-list p-2 shadow'
-                        src={recipe.imageUrl}
-                        style={{
-                          margin: 'auto',
-                          border: '0.1px solid whitesmoke',
-                          backgroundColor: 'white',
-                          maxWidth: '100%',
-                        }}
-                      />
+            <>
+              <div
+                className='recipe-list-wrapper-border border mb-3'
+                style={{
+                  borderRadius: '10px',
+                  backgroundColor: '#fdf7f4',
+                  borderColor: 'rgba(169, 169, 169, 0.1)',
+                }}
+              >
+                {filteredRecipes.map((recipe) => {
+                  const isSaved = savedRecipeIds.includes(recipe._id);
+                  return (
+                    <div className='p-4' key={recipe._id}>
                       <div
-                        className='wrapper-content-recipe'
-                        style={{ margin: '0px 15px' }}
+                        key={recipe._id}
+                        className='wrapper-image-and-content d-md-grid d-flex flex-column gap-3'
                       >
-                        <div
-                          className='recipe-title text-center text-md-start'
+                        <Image
+                          className='an-image-in-recipe-list p-2 shadow'
+                          src={recipe.imageUrl}
                           style={{
-                            fontWeight: 'bolder',
-                            color: '#528135',
-                            textTransform: 'uppercase',
-                            fontSize: 32,
+                            margin: 'auto',
+                            border: '0.1px solid whitesmoke',
+                            backgroundColor: 'white',
+                            maxWidth: '100%',
                           }}
-                        >
-                          {recipe.title}
-                        </div>
+                        />
                         <div
-                          className='recipe-description'
-                          style={{ margin: '10px 0', fontSize: 14 }}
-                          dangerouslySetInnerHTML={{
-                            __html: recipe.description,
-                          }}
-                        ></div>
-                        <div
-                          className='recipe-actions d-flex gap-2 justify-content-md-end justify-content-center'
-                          style={{
-                            justifyContent: 'end',
-                            gap: '10px',
-                          }}
+                          className='wrapper-content-recipe'
+                          style={{ margin: '0px 15px' }}
                         >
-                          <button
-                            className='button-save-unsave-recipe'
-                            onClick={() => handleSaveToggle(recipe._id)}
+                          <div
+                            className='recipe-title text-center text-md-start'
+                            style={{
+                              fontWeight: 'bolder',
+                              color: '#528135',
+                              textTransform: 'uppercase',
+                              fontSize: 32,
+                            }}
                           >
-                            {isSaved ? 'Bỏ lưu' : 'Lưu công thức'}
-                          </button>
-
-                          <Link to={`/recipe-details/${recipe.slug}`}>
-                            <button className='button-show-details'>
-                              Xem chi tiết
+                            {recipe.title}
+                          </div>
+                          <div
+                            className='recipe-description'
+                            style={{ margin: '10px 0', fontSize: 14 }}
+                            dangerouslySetInnerHTML={{
+                              __html: recipe.description,
+                            }}
+                          ></div>
+                          <div
+                            className='recipe-actions d-flex gap-2 justify-content-md-end justify-content-center'
+                            style={{
+                              justifyContent: 'end',
+                              gap: '10px',
+                            }}
+                          >
+                            <button
+                              className='button-save-unsave-recipe'
+                              onClick={() => handleSaveToggle(recipe._id)}
+                            >
+                              {isSaved ? 'Bỏ lưu' : 'Lưu công thức'}
                             </button>
-                          </Link>
+
+                            <Link to={`/recipe-details/${recipe.slug}`}>
+                              <button className='button-show-details'>
+                                Xem chi tiết
+                              </button>
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
 
-          {/* Pagination for default case (no search) */}
-          {searchRecipeInput === '' && (
-            <div className='d-flex justify-content-center gap-3 m-3'>
-              {currentPage > 1 && (
-                <button
-                  className='button-clicked-pagination rounded px-3 py-2'
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                >
-                  Trang trước
-                </button>
+              {/* Pagination component */}
+              {totalPages > 1 && (
+                <div className='d-flex justify-content-center my-4'>
+                  <ReactPaginate
+                    previousLabel='Trang trước'
+                    nextLabel='Trang sau'
+                    pageCount={totalPages}
+                    onPageChange={handlePageChange}
+                    forcePage={currentPage}
+                    containerClassName='pagination pagination-custom'
+                    pageClassName='page-item'
+                    pageLinkClassName='page-link'
+                    previousClassName='page-item'
+                    previousLinkClassName='page-link'
+                    nextClassName='page-item'
+                    nextLinkClassName='page-link'
+                    activeClassName='active'
+                    disabledClassName='disabled'
+                    breakLabel='...'
+                    breakClassName='page-item break'
+                    breakLinkClassName='page-link'
+                    marginPagesDisplayed={1}
+                    pageRangeDisplayed={3}
+                    renderOnZeroPageCount={null}
+                  />
+                </div>
               )}
-
-              {generatePageNumbers().map((page) => (
-                <button
-                  className='button-clicked-pagination rounded px-3 py-2'
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  disabled={page === currentPage}
-                  style={{
-                    backgroundColor: page === currentPage ? '#528135' : '',
-                    color: page === currentPage ? 'white' : '',
-                    minWidth: '40px',
-                  }}
-                >
-                  {page}
-                </button>
-              ))}
-
-              {currentPage < totalPages && (
-                <button
-                  className='button-clicked-pagination rounded px-3 py-2'
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                >
-                  Trang sau
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Pagination for search results */}
-          {searchRecipeInput !== '' && filteredRecipes.length > 0 && (
-            <div className='d-flex justify-content-center gap-3 m-3'>
-              {currentPage > 1 && (
-                <button
-                  className='button-clicked-pagination rounded px-3 py-2'
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                >
-                  Trang trước
-                </button>
-              )}
-
-              {generatePageNumbers().map((page) => (
-                <button
-                  className='button-clicked-pagination rounded px-3 py-2'
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  disabled={page === currentPage}
-                  style={{
-                    backgroundColor: page === currentPage ? '#528135' : '',
-                    color: page === currentPage ? 'white' : '',
-                    minWidth: '40px',
-                  }}
-                >
-                  {page}
-                </button>
-              ))}
-
-              {currentPage < totalPages && (
-                <button
-                  className='button-clicked-pagination rounded px-3 py-2'
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                >
-                  Trang sau
-                </button>
-              )}
-            </div>
+            </>
           )}
         </div>
       </div>
