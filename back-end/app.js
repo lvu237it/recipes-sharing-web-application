@@ -25,6 +25,8 @@ app.use(
   cors({
     origin: frontendURL, // Change to your front-end's URL
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 //routing handlers

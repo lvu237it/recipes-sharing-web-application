@@ -3,6 +3,7 @@ import './App.css';
 import RecipesList from './components/RecipesList';
 import { Routes, Route } from 'react-router-dom';
 import RecipeDetail from './components/RecipeDetail';
+import Login from './components/Login';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           path='/recipe-details/:recipeNameSlug'
           element={<RecipeDetail />}
         />
+         <Route path='/login' element={<Login />} />
       </Routes>
     </>
   );

@@ -32,11 +32,18 @@ exports.getAllComments = async (req, res) => {
 // Admin adds a comment to a recipe
 exports.adminAddComment = async (req, res) => {
   try {
-    const { adminId, recipeId } = req.params;
+    const { recipeId } = req.params;
     const { content } = req.body;
 
-    if (!isValidObjectId(adminId) || !isValidObjectId(recipeId)) {
-      return res.status(400).json({ error: "Invalid admin or recipe ID." });
+    // Verify that the logged-in user is an admin
+    if (req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "Unauthorised: User is not an admin." });
+    }
+
+    if (!isValidObjectId(recipeId)) {
+      return res.status(400).json({ error: "Invalid recipe ID." });
     }
 
     if (!content?.trim()) {
@@ -49,21 +56,15 @@ exports.adminAddComment = async (req, res) => {
       return res.status(404).json({ error: "Recipe does not exist." });
     }
 
-    if (!(await isAdmin(adminId))) {
-      return res
-        .status(403)
-        .json({ error: "Unauthorised: User is not an admin." });
-    }
-
-    // Retrieve the admin's user data for caching
-    const adminUser = await User.findById(adminId);
+    // Use logged-in admin data from req.user
+    const adminUser = req.user;
 
     const newComment = new Comment({
       content,
-      user: adminId,
+      user: adminUser._id,
       recipe: recipeId,
       authorUsername: adminUser.username,
-      authorImageUrl: adminUser.avatar,
+      authorAvatar: adminUser.avatar,
     });
     await newComment.save();
     res.status(201).json(newComment);
@@ -75,11 +76,11 @@ exports.adminAddComment = async (req, res) => {
 // User adds a comment to a recipe
 exports.userAddComment = async (req, res) => {
   try {
-    const { userId, recipeId } = req.params;
+    const { recipeId } = req.params;
     const { content } = req.body;
 
-    if (!isValidObjectId(userId) || !isValidObjectId(recipeId)) {
-      return res.status(400).json({ error: "Invalid user or recipe ID." });
+    if (!isValidObjectId(recipeId)) {
+      return res.status(400).json({ error: "Invalid recipe ID." });
     }
 
     if (!content?.trim()) {
@@ -88,6 +89,8 @@ exports.userAddComment = async (req, res) => {
         .json({ error: "Comment content cannot be empty." });
     }
 
+    // Verify logged-in user exists (protect middleware already does this)
+    const userId = req.user._id;
     if (!(await isValidUser(userId))) {
       return res.status(404).json({ error: "User does not exist." });
     }
@@ -96,15 +99,14 @@ exports.userAddComment = async (req, res) => {
       return res.status(404).json({ error: "Recipe does not exist." });
     }
 
-    // Retrieve the user's data for caching
-    const user = await User.findById(userId);
-
+    // Use the logged-in user's data from req.user
+    const user = req.user;
     const newComment = new Comment({
       content,
-      user: userId,
+      user: user._id,
       recipe: recipeId,
       authorUsername: user.username,
-      authorImageUrl: user.avatar,
+      authorAvatar: user.avatar,
     });
     await newComment.save();
     res.status(201).json(newComment);
@@ -116,11 +118,18 @@ exports.userAddComment = async (req, res) => {
 // Admin edits a comment
 exports.adminEditComment = async (req, res) => {
   try {
-    const { adminId, commentId } = req.params;
+    const { recipeId, commentId } = req.params;
     const { content } = req.body;
 
-    if (!isValidObjectId(adminId) || !isValidObjectId(commentId)) {
-      return res.status(400).json({ error: "Invalid admin or comment ID." });
+    // Verify that the logged-in user is an admin
+    if (req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "Unauthorised: User is not an admin." });
+    }
+
+    if (!isValidObjectId(recipeId) || !isValidObjectId(commentId)) {
+      return res.status(400).json({ error: "Invalid recipe or comment ID." });
     }
 
     if (!content?.trim()) {
@@ -129,17 +138,13 @@ exports.adminEditComment = async (req, res) => {
         .json({ error: "Comment content cannot be empty." });
     }
 
-    if (!(await isAdmin(adminId))) {
-      return res
-        .status(403)
-        .json({ error: "Unauthorised: User is not an admin." });
-    }
-
     if (!(await isValidComment(commentId))) {
       return res.status(404).json({ error: "Comment does not exist." });
     }
 
-    if (!(await isCommentMadeByUser(commentId, adminId))) {
+    // (Optional) Check if the comment was originally made by this admin.
+    // Remove this check if you want admins to edit any comment.
+    if (!(await isCommentMadeByUser(commentId, req.user._id))) {
       return res
         .status(403)
         .json({ error: "Unauthorised: Cannot edit others' comments." });
@@ -159,11 +164,11 @@ exports.adminEditComment = async (req, res) => {
 // User edits their own comment
 exports.userEditComment = async (req, res) => {
   try {
-    const { userId, commentId } = req.params;
+    const { recipeId, commentId } = req.params;
     const { content } = req.body;
 
-    if (!isValidObjectId(userId) || !isValidObjectId(commentId)) {
-      return res.status(400).json({ error: "Invalid user or comment ID." });
+    if (!isValidObjectId(recipeId) || !isValidObjectId(commentId)) {
+      return res.status(400).json({ error: "Invalid recipe or comment ID." });
     }
 
     if (!content?.trim()) {
@@ -176,7 +181,8 @@ exports.userEditComment = async (req, res) => {
       return res.status(404).json({ error: "Comment does not exist." });
     }
 
-    if (!(await isCommentMadeByUser(commentId, userId))) {
+    // Ensure that the comment belongs to the logged-in user
+    if (!(await isCommentMadeByUser(commentId, req.user._id))) {
       return res
         .status(403)
         .json({ error: "Unauthorised: Cannot edit others' comments." });
@@ -196,20 +202,21 @@ exports.userEditComment = async (req, res) => {
 // Admin deletes any comment
 exports.adminDeleteComment = async (req, res) => {
   try {
-    const { adminId, commentId } = req.params;
+    const { recipeId, commentId } = req.params;
 
-    if (!isValidObjectId(adminId) || !isValidObjectId(commentId)) {
-      return res.status(400).json({ error: "Invalid admin or comment ID." });
+    // Verify that the logged-in user is an admin
+    if (req.user.role !== "admin") {
+      return res
+        .status(403)
+        .json({ error: "Unauthorised: User is not an admin." });
+    }
+
+    if (!isValidObjectId(recipeId) || !isValidObjectId(commentId)) {
+      return res.status(400).json({ error: "Invalid recipe or comment ID." });
     }
 
     if (!(await isValidComment(commentId))) {
       return res.status(404).json({ error: "Comment does not exist." });
-    }
-
-    if (!(await isAdmin(adminId))) {
-      return res
-        .status(403)
-        .json({ error: "Unauthorised: User is not an admin." });
     }
 
     const deletedComment = await Comment.findByIdAndUpdate(
@@ -226,17 +233,18 @@ exports.adminDeleteComment = async (req, res) => {
 // User deletes their own comment
 exports.userDeleteComment = async (req, res) => {
   try {
-    const { userId, commentId } = req.params;
+    const { recipeId, commentId } = req.params;
 
-    if (!isValidObjectId(userId) || !isValidObjectId(commentId)) {
-      return res.status(400).json({ error: "Invalid user or comment ID." });
+    if (!isValidObjectId(recipeId) || !isValidObjectId(commentId)) {
+      return res.status(400).json({ error: "Invalid recipe or comment ID." });
     }
 
     if (!(await isValidComment(commentId))) {
       return res.status(404).json({ error: "Comment does not exist." });
     }
 
-    if (!(await isCommentMadeByUser(commentId, userId))) {
+    // Ensure that the comment was made by the logged-in user
+    if (!(await isCommentMadeByUser(commentId, req.user._id))) {
       return res
         .status(403)
         .json({ error: "Unauthorised: Cannot delete others' comments." });
