@@ -1,7 +1,6 @@
 //Không cần viết thêm adminModel mà sử dụng trực tiếp userModel với role là admin - kiểm tra role của user có phải admin không, và thực hiện tác vụ cần thiết
-const User = require('../models/userModel');
 const Recipe = require('../models/recipeModel');
-
+const Comment = require('../models/commentModel');
 
 //get all recipes for admin role
 exports.getAllRecipe = async (req, res) => {
@@ -112,5 +111,25 @@ exports.updateRecipeStatus = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+//delete comment isDelete = true
+exports.deleteCommentByAdmin = async (req, res) => {
+  try {
+      const { commentId } = req.params;
+
+      // Kiểm tra xem comment có tồn tại không
+      const comment = await Comment.findById(commentId);
+      if (!comment) {
+          return res.status(404).json({ message: "Comment không tồn tại" });
+      }
+
+      // Cập nhật isDeleted = true để xóa mềm
+      await Comment.findByIdAndUpdate(commentId, { isDeleted: true }, { new: true });
+
+      res.status(200).json({ message: "Xóa mềm comment thành công" });
+  } catch (error) {
+      res.status(500).json({ message: "Lỗi server", error: error.message });
   }
 };

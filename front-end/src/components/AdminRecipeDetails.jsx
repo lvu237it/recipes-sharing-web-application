@@ -11,9 +11,8 @@ import {
 	Col,
 	ListGroup,
 } from 'react-bootstrap';
-import { toast,ToastContainer  } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 
 const statusMapping = {
 	Pending_Approval: 'Chờ duyệt',
@@ -26,6 +25,7 @@ const AdminRecipeDetails = () => {
 	const { recipeId } = useParams();
 	const navigate = useNavigate();
 	const [recipe, setRecipe] = useState(null);
+	const [comments, setComments] = useState([]);
 	const token = localStorage.getItem('token');
 
 	useEffect(() => {
@@ -35,30 +35,60 @@ const AdminRecipeDetails = () => {
 			})
 			.then((response) => setRecipe(response.data.data))
 			.catch((error) => console.error('Lỗi lấy chi tiết món ăn:', error));
+		axios
+			.get(`http://localhost:3000/admin/recipes/${recipeId}/comments`, {
+				headers: { Authorization: `Bearer ${token}` },
+			})
+			.then((response) => setComments(response.data))
+			.catch((error) => console.error('Lỗi lấy bình luận:', error));
 	}, [recipeId]);
+	console.log(comments);
 
 	if (!recipe) return <p className='text-center'>Đang tải...</p>;
 
-	// 🛠 Hàm cập nhật trạng thái công thức nấu ăn
-  const handleUpdateStatus = async (newStatus) => {
-    try {
-        await axios.patch(
-            `http://localhost:3000/admin/recipes/${recipeId}/status`,
-            { status: newStatus },
-            { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setRecipe((prev) => ({ ...prev, status: newStatus })); // Cập nhật UI
-        toast.success(`Cập nhật trạng thái thành công: ${statusMapping[newStatus]}`);
-    } catch (error) {
-        console.error('Lỗi cập nhật trạng thái:', error);
-        toast.error('Cập nhật trạng thái thất bại!');
-    }
-};
+	// Hàm cập nhật trạng thái công thức nấu ăn
+	const handleUpdateStatus = async (newStatus) => {
+		try {
+			await axios.patch(
+				`http://localhost:3000/admin/recipes/${recipeId}/status`,
+				{ status: newStatus },
+				{ headers: { Authorization: `Bearer ${token}` } }
+			);
+			setRecipe((prev) => ({ ...prev, status: newStatus })); // Cập nhật UI
+			toast.success(
+				`Cập nhật trạng thái thành công: ${statusMapping[newStatus]}`
+			);
+		} catch (error) {
+			console.error('Lỗi cập nhật trạng thái:', error);
+			toast.error('Cập nhật trạng thái thất bại!');
+		}
+	};
 
+	const handleSoftDeleteComment = async (recipeId, commentId) => {
+		try {
+			await axios.patch(
+				`http://localhost:3000/admin/recipes/${recipeId}/delete-comment/${commentId}`,
+				{ isDeleted: true }, // Sửa 'true' thành true (boolean)
+				{ headers: { Authorization: `Bearer ${token}` } }
+			);
+
+	
+			// Cập nhật lại danh sách bình luận ngay lập tức
+			setComments((prevComments) =>
+				prevComments.map((comment) =>
+					comment._id === commentId ? { ...comment, isDeleted: true } : comment
+				)
+			);
+			toast.success('Bình luận đã được ẩn!');
+		} catch (error) {
+			console.error('Lỗi khi xóa mềm bình luận:', error);
+			toast.error('Không thể ẩn bình luận.');
+		}
+	};
 
 	return (
 		<Container className='mt-4'>
-       <ToastContainer position='top-right' autoClose={3000} />
+			<ToastContainer position='top-right' autoClose={3000} />
 			{/* Nút quay lại */}
 			<Button variant='secondary' onClick={() => navigate(-1)} className='mb-3'>
 				← Quay lại
@@ -100,13 +130,13 @@ const AdminRecipeDetails = () => {
 								variant='success'
 								className='me-2'
 								onClick={() => handleUpdateStatus('Public')}>
-								 Duyệt công thức
+								Duyệt công thức
 							</Button>
 
 							<Button
 								variant='danger'
 								onClick={() => handleUpdateStatus('Rejected')}>
-								 Từ chối duyệt công thức
+								Từ chối duyệt công thức
 							</Button>
 						</div>
 					</Col>
@@ -137,6 +167,39 @@ const AdminRecipeDetails = () => {
 					</Card>
 				</Col>
 			</Row>
+			<Card className='mt-4 p-3 shadow-sm'>
+				<h5 className='text-success'>Bình luận</h5>
+				{comments.length === 0 ? (
+					<p className='text-muted'>Chưa có bình luận nào.</p>
+				) : (
+					<ListGroup>
+						{comments.map((comment) => (
+							<ListGroup.Item
+								key={comment.id}
+								className='d-flex justify-content-between align-items-center'>
+								<div>
+									<strong>{comment.user?.username}</strong>
+									{comment.isDeleted && (
+										<span className='text-danger'> (Đã xóa)</span>
+									)}
+									: {comment.content}
+								</div>
+
+								{!comment.isDeleted && (
+									<Button
+										variant='danger'
+										size='sm'
+										onClick={() =>
+											handleSoftDeleteComment(recipeId, comment._id)
+										}>
+										Xóa
+									</Button>
+								)}
+							</ListGroup.Item>
+						))}
+					</ListGroup>
+				)}
+			</Card>
 		</Container>
 	);
 };
