@@ -52,8 +52,14 @@ const CommentSection = ({ recipeId }) => {
       return;
     }
     try {
+      // Use admin endpoint if current user is admin; otherwise, use user endpoint
+      const endpoint =
+        currentUserRole === "admin"
+          ? `http://localhost:3000/comments/admin/${currentUserId}/recipe/${recipeId}/add-comment`
+          : `http://localhost:3000/comments/user/${currentUserId}/recipe/${recipeId}/add-comment`;
+
       const response = await axios.post(
-        `http://localhost:3000/comments/user/${currentUserId}/recipe/${recipeId}/add-comment`,
+        endpoint,
         { content: newComment },
         { withCredentials: true }
       );

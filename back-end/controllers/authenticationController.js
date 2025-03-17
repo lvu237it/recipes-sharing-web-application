@@ -3,11 +3,11 @@ const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/sendMail");
-const { generateAccessToken, generateRefreshToken } = require('../middlewares/jwt')
 const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../middlewares/jwt");
+
 exports.registerUser = async (req, res) => {
   try {
     // Lấy dữ liệu từ request body
@@ -53,48 +53,79 @@ exports.registerUser = async (req, res) => {
   } catch (error) {
     console.error("Error while registering user:", error);
     res.status(500).json({
-      error,                 
+      error,
     });
   }
 };
 exports.loginUser = async (req, res) => {
-    try {
-      const { email, password } = req.body;
-  
-      // Kiểm tra xem có nhập đủ thông tin không
-      if (!email || !password) {
-        return res.status(400).json({
-          message: "Missing email or password",
-          status: 400,
-        });
-      }
-  
-      // Tìm user theo email
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(401).json({
-          message: "Invalid email ",
-          status: 401,
-        });
-      }
-  
-      // Kiểm tra mật khẩu
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return res.status(401).json({
-          message: "Invalid password",
-          status: 401,
-        });
-      }
-  // Tạo token truy cập và token refresh
-  const {  role, refreshToken, ...userData } = user.toObject();
-  const accessToken = generateAccessToken(user._id, role);
-  const newRefreshToken = generateRefreshToken(user._id);
-    console.error("Error while registering user:", error);
+  try {
+    const { email, password } = req.body;
+
+    // Kiểm tra xem có nhập đủ thông tin không
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Missing email or password",
+        status: 400,
+      });
+    }
+
+    // Tìm user theo email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({
+        message: "Invalid email ",
+        status: 401,
+      });
+    }
+
+    // Kiểm tra mật khẩu
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Invalid password",
+        status: 401,
+      });
+    }
+    // Tạo token truy cập và token refresh
+    const { role, refreshToken, ...userData } = user.toObject();
+    const accessToken = generateAccessToken(user._id, role);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    // Cập nhật token refresh trong database
+    await User.findByIdAndUpdate(
+      user._id,
+      { refreshToken: newRefreshToken },
+      { new: true }
+    );
+
+    // Thiết lập cookie chứa token refresh
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      maxAge: 15 * 60 * 1000, // 15'
+    });
+
+    // Phản hồi thông tin thành công
+    res.status(200).json({
+      success: true,
+      accessToken,
+      userData,
+    });
+  } catch (error) {
+    console.error("Error while logging in:", error);
     res.status(500).json({
+      message: "Internal Server Error",
+      status: 500,
       error,
     });
   }
+};
+exports.getCurrentUser = async (req, res) => {
+  const { _id } = req.user;
+  const user = await User.findById(_id).select("-refreshToken -password -role");
+  res.status(200).json({
+    success: !!user,
+    user: user || "User not found",
+  });
 };
 exports.loginUser = async (req, res) => {
   try {
