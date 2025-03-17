@@ -12,4 +12,5 @@ router.post("/login",authenticationController.loginUser)
 // router.post("/forgotpass",authenticationController.forgotPassword)
 // router.post("/resetpass",authenticationController.resetPassword)
 
+
 module.exports = router;
