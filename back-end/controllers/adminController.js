@@ -67,7 +67,6 @@ exports.getRecipeDetails = async (req, res) => {
       'owner',
       'username email'
     );
-
     if (!recipe) {
       return res
         .status(404)

@@ -274,3 +274,23 @@ exports.getAllCommentsForAdmin = async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve comments.' });
   }
 };
+
+
+exports.getAllCommentsForAdmin = async (req, res) => {
+  try {
+    const { recipeId } = req.params;
+
+    if (!isValidObjectId(recipeId)) {
+      return res.status(400).json({ error: "Invalid recipe ID." });
+    }
+
+    if (!(await isValidRecipe(recipeId))) {
+      return res.status(404).json({ error: "Recipe does not exist." });
+    }
+
+    const comments = await Comment.find({ recipe: recipeId}).populate('user', 'username');
+    res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve comments." });
+  }
+};
