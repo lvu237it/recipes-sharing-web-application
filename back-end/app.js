@@ -25,7 +25,7 @@ app.use(
   cors({
     origin: frontendURL, // Change to your front-end's URL
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"], // Các phương thức được phép
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );

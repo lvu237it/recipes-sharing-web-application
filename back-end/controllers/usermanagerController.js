@@ -52,4 +52,8 @@ exports.updateUser = async (req, res) => {
       .status(500)
       .json({ message: 'Server error', error: error.message });
   }
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> 50c1b295acde638fa846370d3fb8c04c912501b5

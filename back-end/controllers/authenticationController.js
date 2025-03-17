@@ -7,7 +7,6 @@ const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../middlewares/jwt");
-
 exports.registerUser = async (req, res) => {
   try {
     // Lấy dữ liệu từ request body
@@ -17,7 +16,6 @@ exports.registerUser = async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({
         message: "Missing required fields",
-        message: "Missing required fields",
         status: 400,
       });
     }
@@ -26,7 +24,6 @@ exports.registerUser = async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({
-        message: "Email already exists",
         message: "Email already exists",
         status: 409,
       });
@@ -45,7 +42,6 @@ exports.registerUser = async (req, res) => {
 
     // Trả về kết quả
     res.status(201).json({
-      message: "User registered successfully",
       message: "User registered successfully",
       status: 201,
       data: newUser,

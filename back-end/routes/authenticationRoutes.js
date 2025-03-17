@@ -8,9 +8,9 @@ const router = express.Router();
 
 router.post("/register",authenticationController.registerUser)
 router.post("/login",authenticationController.loginUser)
-router.post("/logout",authenticationController.logoutUser)
-router.post("/forgotpass",authenticationController.forgotPassword)
-router.post("/resetpass",authenticationController.resetPassword)
+// router.post("/logout",authenticationController.logoutUser)
+// router.post("/forgotpass",authenticationController.forgotPassword)
+// router.post("/resetpass",authenticationController.resetPassword)
 
 
 module.exports = router;

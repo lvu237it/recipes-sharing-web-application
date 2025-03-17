@@ -1,5 +1,5 @@
-const Comment = require("../models/commentModel");
-const User = require("../models/userModel");
+const Comment = require('../models/commentModel');
+const User = require('../models/userModel');
 const {
   isValidObjectId,
   isValidUser,
@@ -7,7 +7,7 @@ const {
   isValidRecipe,
   isValidComment,
   isCommentMadeByUser,
-} = require("./utils");
+} = require('./utils');
 
 // Get all comments for a specific recipe
 exports.getAllComments = async (req, res) => {
@@ -15,17 +15,17 @@ exports.getAllComments = async (req, res) => {
     const { recipeId } = req.params;
 
     if (!isValidObjectId(recipeId)) {
-      return res.status(400).json({ error: "Invalid recipe ID." });
+      return res.status(400).json({ error: 'Invalid recipe ID.' });
     }
 
     if (!(await isValidRecipe(recipeId))) {
-      return res.status(404).json({ error: "Recipe does not exist." });
+      return res.status(404).json({ error: 'Recipe does not exist.' });
     }
 
     const comments = await Comment.find({ recipe: recipeId, isDeleted: false });
     res.status(200).json(comments);
   } catch (error) {
-    res.status(500).json({ error: "Failed to retrieve comments." });
+    res.status(500).json({ error: 'Failed to retrieve comments.' });
   }
 };
 
@@ -49,11 +49,11 @@ exports.adminAddComment = async (req, res) => {
     if (!content?.trim()) {
       return res
         .status(400)
-        .json({ error: "Comment content cannot be empty." });
+        .json({ error: 'Comment content cannot be empty.' });
     }
 
     if (!(await isValidRecipe(recipeId))) {
-      return res.status(404).json({ error: "Recipe does not exist." });
+      return res.status(404).json({ error: 'Recipe does not exist.' });
     }
 
     // Use logged-in admin data from req.user
@@ -69,7 +69,7 @@ exports.adminAddComment = async (req, res) => {
     await newComment.save();
     res.status(201).json(newComment);
   } catch (error) {
-    res.status(500).json({ error: "Failed to create comment." });
+    res.status(500).json({ error: 'Failed to create comment.' });
   }
 };
 
@@ -79,24 +79,24 @@ exports.userAddComment = async (req, res) => {
     const { recipeId } = req.params;
     const { content } = req.body;
 
-    if (!isValidObjectId(recipeId)) {
-      return res.status(400).json({ error: "Invalid recipe ID." });
+    if (!isValidObjectId(userId) || !isValidObjectId(recipeId)) {
+      return res.status(400).json({ error: 'Invalid user or recipe ID.' });
     }
 
     if (!content?.trim()) {
       return res
         .status(400)
-        .json({ error: "Comment content cannot be empty." });
+        .json({ error: 'Comment content cannot be empty.' });
     }
 
     // Verify logged-in user exists (protect middleware already does this)
     const userId = req.user._id;
     if (!(await isValidUser(userId))) {
-      return res.status(404).json({ error: "User does not exist." });
+      return res.status(404).json({ error: 'User does not exist.' });
     }
 
     if (!(await isValidRecipe(recipeId))) {
-      return res.status(404).json({ error: "Recipe does not exist." });
+      return res.status(404).json({ error: 'Recipe does not exist.' });
     }
 
     // Use the logged-in user's data from req.user
@@ -111,7 +111,7 @@ exports.userAddComment = async (req, res) => {
     await newComment.save();
     res.status(201).json(newComment);
   } catch (error) {
-    res.status(500).json({ error: "Failed to create comment." });
+    res.status(500).json({ error: 'Failed to create comment.' });
   }
 };
 
@@ -130,16 +130,21 @@ exports.adminEditComment = async (req, res) => {
 
     if (!isValidObjectId(recipeId) || !isValidObjectId(commentId)) {
       return res.status(400).json({ error: "Invalid recipe or comment ID." });
-    }
 
     if (!content?.trim()) {
       return res
         .status(400)
-        .json({ error: "Comment content cannot be empty." });
+        .json({ error: 'Comment content cannot be empty.' });
+    }
+
+    if (!(await isAdmin(adminId))) {
+      return res
+        .status(403)
+        .json({ error: 'Unauthorised: User is not an admin.' });
     }
 
     if (!(await isValidComment(commentId))) {
-      return res.status(404).json({ error: "Comment does not exist." });
+      return res.status(404).json({ error: 'Comment does not exist.' });
     }
 
     // (Optional) Check if the comment was originally made by this admin.
@@ -157,7 +162,7 @@ exports.adminEditComment = async (req, res) => {
     );
     res.status(200).json(updatedComment);
   } catch (error) {
-    res.status(500).json({ error: "Failed to update comment." });
+    res.status(500).json({ error: 'Failed to update comment.' });
   }
 };
 
@@ -167,18 +172,18 @@ exports.userEditComment = async (req, res) => {
     const { recipeId, commentId } = req.params;
     const { content } = req.body;
 
-    if (!isValidObjectId(recipeId) || !isValidObjectId(commentId)) {
-      return res.status(400).json({ error: "Invalid recipe or comment ID." });
+    if (!isValidObjectId(userId) || !isValidObjectId(commentId)) {
+      return res.status(400).json({ error: 'Invalid user or comment ID.' });
     }
 
     if (!content?.trim()) {
       return res
         .status(400)
-        .json({ error: "Comment content cannot be empty." });
+        .json({ error: 'Comment content cannot be empty.' });
     }
 
     if (!(await isValidComment(commentId))) {
-      return res.status(404).json({ error: "Comment does not exist." });
+      return res.status(404).json({ error: 'Comment does not exist.' });
     }
 
     // Ensure that the comment belongs to the logged-in user
@@ -195,7 +200,7 @@ exports.userEditComment = async (req, res) => {
     );
     res.status(200).json(updatedComment);
   } catch (error) {
-    res.status(500).json({ error: "Failed to update comment." });
+    res.status(500).json({ error: 'Failed to update comment.' });
   }
 };
 
@@ -216,7 +221,13 @@ exports.adminDeleteComment = async (req, res) => {
     }
 
     if (!(await isValidComment(commentId))) {
-      return res.status(404).json({ error: "Comment does not exist." });
+      return res.status(404).json({ error: 'Comment does not exist.' });
+    }
+
+    if (!(await isAdmin(adminId))) {
+      return res
+        .status(403)
+        .json({ error: 'Unauthorised: User is not an admin.' });
     }
 
     const deletedComment = await Comment.findByIdAndUpdate(
@@ -226,7 +237,7 @@ exports.adminDeleteComment = async (req, res) => {
     );
     res.status(200).json(deletedComment);
   } catch (error) {
-    res.status(500).json({ error: "Failed to delete comment." });
+    res.status(500).json({ error: 'Failed to delete comment.' });
   }
 };
 
@@ -235,12 +246,12 @@ exports.userDeleteComment = async (req, res) => {
   try {
     const { recipeId, commentId } = req.params;
 
-    if (!isValidObjectId(recipeId) || !isValidObjectId(commentId)) {
-      return res.status(400).json({ error: "Invalid recipe or comment ID." });
+    if (!isValidObjectId(userId) || !isValidObjectId(commentId)) {
+      return res.status(400).json({ error: 'Invalid user or comment ID.' });
     }
 
     if (!(await isValidComment(commentId))) {
-      return res.status(404).json({ error: "Comment does not exist." });
+      return res.status(404).json({ error: 'Comment does not exist.' });
     }
 
     // Ensure that the comment was made by the logged-in user
@@ -257,6 +268,48 @@ exports.userDeleteComment = async (req, res) => {
     );
     res.status(200).json(deletedComment);
   } catch (error) {
-    res.status(500).json({ error: "Failed to delete comment." });
+    res.status(500).json({ error: 'Failed to delete comment.' });
+  }
+};
+
+exports.getAllCommentsForAdmin = async (req, res) => {
+  try {
+    const { recipeId } = req.params;
+
+    if (!isValidObjectId(recipeId)) {
+      return res.status(400).json({ error: 'Invalid recipe ID.' });
+    }
+
+    if (!(await isValidRecipe(recipeId))) {
+      return res.status(404).json({ error: 'Recipe does not exist.' });
+    }
+
+    const comments = await Comment.find({ recipe: recipeId }).populate(
+      'user',
+      'username'
+    );
+    res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve comments.' });
+  }
+};
+
+
+exports.getAllCommentsForAdmin = async (req, res) => {
+  try {
+    const { recipeId } = req.params;
+
+    if (!isValidObjectId(recipeId)) {
+      return res.status(400).json({ error: "Invalid recipe ID." });
+    }
+
+    if (!(await isValidRecipe(recipeId))) {
+      return res.status(404).json({ error: "Recipe does not exist." });
+    }
+
+    const comments = await Comment.find({ recipe: recipeId}).populate('user', 'username');
+    res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to retrieve comments." });
   }
 };
