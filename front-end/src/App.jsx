@@ -11,7 +11,7 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path='/login' element={<Login />} />
+        <Route path='/' element={<Login />} />
         <Route path='/recipe-list' element={<RecipesList />} />
         <Route
           path='/recipe-details/:recipeNameSlug'

@@ -30,7 +30,7 @@ const AdminRecipes = () => {
   const [selectedStatus, setSelectedStatus] = useState('');
 
   const limit = 5;
-  const token = localStorage.getItem('token');
+  const accessToken = localStorage.getItem('accessToken');
   const navigate = useNavigate();
   const [categories] = useState(foodCategories); // Danh mục cố định
 
@@ -53,7 +53,7 @@ const AdminRecipes = () => {
           category: selectedCategory || null,
           status: selectedStatus || null,
         },
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
       .then((response) => {
         setRecipes(response.data.data || []);

@@ -26,18 +26,18 @@ const AdminRecipeDetails = () => {
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
   const [comments, setComments] = useState([]);
-  const token = localStorage.getItem('token');
+  const accessToken = localStorage.getItem('accessToken');
 
   useEffect(() => {
     axios
       .get(`http://localhost:3000/admin/recipes/${recipeId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
       .then((response) => setRecipe(response.data.data))
       .catch((error) => console.error('Lỗi lấy chi tiết món ăn:', error));
     axios
       .get(`http://localhost:3000/admin/recipes/${recipeId}/comments`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
       .then((response) => setComments(response.data))
       .catch((error) => console.error('Lỗi lấy bình luận:', error));
@@ -52,7 +52,7 @@ const AdminRecipeDetails = () => {
       await axios.patch(
         `http://localhost:3000/admin/recipes/${recipeId}/status`,
         { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       setRecipe((prev) => ({ ...prev, status: newStatus })); // Cập nhật UI
       toast.success(
@@ -69,7 +69,7 @@ const AdminRecipeDetails = () => {
       await axios.patch(
         `http://localhost:3000/admin/recipes/${recipeId}/delete-comment/${commentId}`,
         { isDeleted: true }, // Sửa 'true' thành true (boolean)
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${accessToken}` } }
       );
 
       // Cập nhật lại danh sách bình luận ngay lập tức
