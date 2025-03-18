@@ -9,12 +9,11 @@ import ErrorBoundary from './components/ErrorBoundary.jsx';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 createRoot(document.getElementById('root')).render(
-  
-    <ErrorBoundary>
-      <BrowserRouter>
-        <Common>
-          <App />
-        </Common>
-      </BrowserRouter>
-    </ErrorBoundary>
+  <ErrorBoundary>
+    <BrowserRouter>
+      <Common>
+        <App />
+      </Common>
+    </BrowserRouter>
+  </ErrorBoundary>
 );

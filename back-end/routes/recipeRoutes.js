@@ -4,6 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const recipeController = require('../controllers/recipeController');
+const { protect } = require('../utils/auth');
 
 // Gọi tới các module xử lý request từ controller
 router.get('/', recipeController.getAllRecipes);
@@ -15,11 +16,15 @@ router.post(
   recipeController.findAllRecipesByCategories
 );
 router.post('/recipes-by-title', recipeController.findAllRecipesByTitle);
-router.post('/create-new-recipe', recipeController.createNewRecipe);
-router.patch('/update-recipe/:recipeId', recipeController.updateRecipe);
+router.post('/create-new-recipe', protect, recipeController.createNewRecipe);
+router.patch(
+  '/update-recipe/:recipeId',
+  protect,
+  recipeController.updateRecipe
+);
 router.patch(
   '/delete-recipe/:recipeId',
-  recipeController.checkIfRecipeIsExist,
+  protect,
   recipeController.deleteRecipe
 );
 

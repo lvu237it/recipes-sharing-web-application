@@ -1,6 +1,6 @@
 // /src/components/RecipeDetail.jsx
 import { useEffect, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useCommon } from '../contexts/CommonContext';
 import { Image, Table, Spinner } from 'react-bootstrap';
 import { RiArrowGoBackLine } from 'react-icons/ri';
@@ -33,7 +33,13 @@ function RecipeDetail() {
     setOpenOptionsRecipeDetailModal,
     setSearchRecipeInput,
     listOfCategories,
+    userDataLocal,
+    accessToken,
   } = useCommon();
+
+  const location = useLocation();
+
+  const previousPage = location.state?.from || '/'; // Mặc định về trang chủ nếu không có state
 
   const [recipeViewDetails, setRecipeViewDetails] = useState(null);
   const [openImageRecipeDetailModal, setOpenImageRecipeDetailModal] =
@@ -136,7 +142,13 @@ function RecipeDetail() {
           try {
             const response = await axios.patch(
               `http://localhost:3000/recipes/update-recipe/${recipeViewDetails._id}`,
-              { status: newStatus }
+              { status: newStatus }, // ✅ Dữ liệu cập nhật phải nằm ở tham số thứ hai
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  'Content-Type': 'application/json',
+                },
+              }
             );
 
             if (response.status === 200) {
@@ -187,8 +199,16 @@ function RecipeDetail() {
   const handleDeleteRecipe = async (recipeId) => {
     try {
       const response = await axios.patch(
-        `http://localhost:3000/recipes/delete-recipe/${recipeId}`
+        `http://localhost:3000/recipes/delete-recipe/${recipeId}`,
+        {}, // 👈 Không có dữ liệu cần cập nhật, để trống {}
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
       );
+
       setOpenOptionsRecipeDetailModal(false);
       if (response.status === 200) {
         const promise = () =>
@@ -206,7 +226,7 @@ function RecipeDetail() {
             );
             setTimeout(() => {
               setSearchRecipeInput('');
-              navigate('/recipe-list');
+              navigate('/');
             }, 1000);
             return `Xoá công thức thành công!`;
           },
@@ -284,7 +304,13 @@ function RecipeDetail() {
 
             const response = await axios.patch(
               `http://localhost:3000/recipes/update-recipe/${recipeViewDetails._id}`,
-              updateData
+              updateData,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  'Content-Type': 'application/json',
+                },
+              }
             );
 
             if (response.status === 200) {
@@ -333,6 +359,12 @@ function RecipeDetail() {
 
   // Add check for required data
   const isDataReady = recipeViewDetails && authorRecipeDetails?.username;
+
+  useEffect(() => {
+    console.log('recipeViewDetails', recipeViewDetails);
+    console.log('userDataLocal?._id', userDataLocal?._id);
+    console.log('recipeViewDetails?.owner', recipeViewDetails?.owner);
+  }, [recipeViewDetails, userDataLocal]);
 
   return (
     <>
@@ -393,7 +425,8 @@ function RecipeDetail() {
               }}
             >
               <div style={{ position: 'relative' }}>
-                <Link to={'/recipe-list'}>
+                {/* <Link to={'/'}> */}
+                <button onClick={() => navigate(previousPage)}>
                   <RiArrowGoBackLine
                     title='Quay lại'
                     className='ri-arrow-go-back-line-recipe-detail m-3'
@@ -404,97 +437,99 @@ function RecipeDetail() {
                       color: 'black',
                     }}
                   />
-                </Link>
+                </button>
+                {/* </Link> */}
               </div>
-              <div style={{ position: 'absolute', right: 0 }}>
-                <PiDotsThreeOutlineVerticalThin
-                  onClick={() =>
-                    setOpenOptionsRecipeDetailModal(
-                      !openOptionsRecipeDetailModal
-                    )
-                  }
-                  title='Thao tác'
-                  className='pi-dots-three-outline-vertical-thin m-3 '
-                  style={{
-                    fontSize: 32,
-                    padding: 5,
-                    borderRadius: '99%',
-                    color: 'black',
-                  }}
-                />
-                {openOptionsRecipeDetailModal && (
-                  <div
-                    ref={modalOptionsRecipeDetailRef}
-                    className='options-modal border shadow-sm'
+              {userDataLocal && (
+                <div style={{ position: 'absolute', right: 0 }}>
+                  <PiDotsThreeOutlineVerticalThin
+                    onClick={() =>
+                      setOpenOptionsRecipeDetailModal(
+                        !openOptionsRecipeDetailModal
+                      )
+                    }
+                    title='Thao tác'
+                    className='pi-dots-three-outline-vertical-thin m-3 '
                     style={{
-                      position: 'absolute',
-                      width: '190px',
-                      top: 50,
-                      right: 20,
-                      backgroundColor: 'white',
-                      borderRadius: '10px',
+                      fontSize: 32,
+                      padding: 5,
+                      borderRadius: '99%',
+                      color: 'black',
                     }}
-                  >
-                    <div className='p-3'>
-                      <div
-                        className='p-2 options-modal-detail'
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '120px 1fr',
-                        }}
-                        onClick={() => handleSaveToggle(recipeViewDetails?._id)}
-                      >
-                        <div>
-                          {savedRecipeIds.includes(recipeViewDetails?._id)
-                            ? 'Bỏ lưu'
-                            : 'Lưu công thức'}
+                  />
+                  {openOptionsRecipeDetailModal && (
+                    <div
+                      ref={modalOptionsRecipeDetailRef}
+                      className='options-modal border shadow-sm'
+                      style={{
+                        position: 'absolute',
+                        width: '190px',
+                        top: 50,
+                        right: 20,
+                        backgroundColor: 'white',
+                        borderRadius: '10px',
+                      }}
+                    >
+                      <div className='p-3'>
+                        <div
+                          className='p-2 options-modal-detail'
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '120px 1fr',
+                          }}
+                          onClick={() =>
+                            handleSaveToggle(recipeViewDetails?._id)
+                          }
+                        >
+                          <div>
+                            {savedRecipeIds.includes(recipeViewDetails?._id)
+                              ? 'Bỏ lưu'
+                              : 'Lưu công thức'}
+                          </div>
+                          {savedRecipeIds.includes(recipeViewDetails?._id) ? (
+                            <BiBookmarkMinus style={{ margin: 'auto' }} />
+                          ) : (
+                            <BiBookmark style={{ margin: 'auto' }} />
+                          )}
                         </div>
-                        {savedRecipeIds.includes(recipeViewDetails?._id) ? (
-                          <BiBookmarkMinus style={{ margin: 'auto' }} />
-                        ) : (
-                          <BiBookmark style={{ margin: 'auto' }} />
+
+                        {/* Chỉ có người sở hữu công thức của họ mới được update */}
+                        {/* Nếu người đang login xem chi tiết công thức của họ thì hiển thị update */}
+                        {userDataLocal?._id === recipeViewDetails?.owner && (
+                          <div
+                            className='p-2 options-modal-detail'
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: '120px 1fr',
+                            }}
+                            onClick={handleOpenEditModal}
+                          >
+                            <div>Chỉnh sửa</div>
+                            <BiPencil style={{ margin: 'auto' }} />
+                          </div>
+                        )}
+
+                        {userDataLocal?._id === recipeViewDetails?.owner && (
+                          <div
+                            className='p-2 options-modal-detail'
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: '120px 1fr',
+                              color: 'red',
+                            }}
+                            onClick={() =>
+                              handleDeleteRecipe(recipeViewDetails?._id)
+                            }
+                          >
+                            <div>Xoá công thức</div>
+                            <BiTrashAlt style={{ margin: 'auto' }} />
+                          </div>
                         )}
                       </div>
-                      <div
-                        className='p-2 options-modal-detail'
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '120px 1fr',
-                        }}
-                        onClick={() => setShowStatusModal(true)}
-                      >
-                        <div>Đổi trạng thái</div>
-                        <FaChevronRight style={{ margin: 'auto' }} />
-                      </div>
-                      <div
-                        className='p-2 options-modal-detail'
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '120px 1fr',
-                        }}
-                        onClick={handleOpenEditModal}
-                      >
-                        <div>Chỉnh sửa</div>
-                        <BiPencil style={{ margin: 'auto' }} />
-                      </div>
-                      <div
-                        className='p-2 options-modal-detail'
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '120px 1fr',
-                          color: 'red',
-                        }}
-                        onClick={() =>
-                          handleDeleteRecipe(recipeViewDetails?._id)
-                        }
-                      >
-                        <div>Xoá công thức</div>
-                        <BiTrashAlt style={{ margin: 'auto' }} />
-                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 

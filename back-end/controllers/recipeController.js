@@ -24,8 +24,7 @@ exports.getAllRecipes = async (req, res) => {
       sortObj = { createdAt: 1 };
     }
 
-    // Get paginated results
-    const results = await Recipe.find(query)
+    const results = await Recipe.find({ ...query, status: 'Public' })
       .sort(sortObj)
       .skip(parseInt(cursor))
       .limit(parseInt(limit))
@@ -62,7 +61,11 @@ exports.getAllRecipes = async (req, res) => {
 exports.getRecipeById = async (req, res) => {
   try {
     const { recipeId } = req.params;
-    const results = await Recipe.find({ _id: recipeId, isDeleted: false });
+    const results = await Recipe.find({
+      _id: recipeId,
+      isDeleted: false,
+      status: 'Public',
+    });
 
     return res.json({
       message: 'success',
@@ -86,6 +89,7 @@ exports.getPopulateRecipeById = async (req, res) => {
     const results = await Recipe.find({
       _id: recipeId,
       isDeleted: false,
+      status: 'Public',
     }).populate('owner', 'username avatar');
 
     return res.json({
@@ -225,6 +229,15 @@ exports.createNewRecipe = async (req, res) => {
       sources,
     } = req.body;
 
+    const ownerId = req.user._id;
+
+    if (req.user.role !== 'user' || req.user.role !== 'admin') {
+      return res.status(403).json({
+        message: `You need to login to create new recipe.`,
+        status: 403,
+      });
+    }
+
     // Kiểm tra và parse nếu là chuỗi JSON
     const parseIfString = (value) => {
       try {
@@ -242,7 +255,7 @@ exports.createNewRecipe = async (req, res) => {
       description,
       ingredients: parseIfString(ingredients),
       steps: parseIfString(steps),
-      owner,
+      owner: owner || ownerId,
       sources: parseIfString(sources),
     });
 
@@ -282,12 +295,22 @@ exports.updateRecipe = async (req, res) => {
     const existingRecipe = await Recipe.find({
       _id: recipeId,
       isDeleted: false,
+      status: 'Public',
     });
 
     if (!existingRecipe) {
       return res.status(404).json({
         message: 'Recipe not found',
         status: 404,
+      });
+    }
+
+    const ownerId = req.user._id;
+    // Nếu không phải công thức của mình thì không được update
+    if (existingRecipe.owner !== ownerId) {
+      return res.status(403).json({
+        message: `You only can update your own recipe.`,
+        status: 403,
       });
     }
 
@@ -334,12 +357,22 @@ exports.deleteRecipe = async (req, res) => {
     const existingRecipe = await Recipe.find({
       _id: recipeId,
       isDeleted: false,
+      status: 'Public',
     });
 
     if (!existingRecipe) {
       return res.status(404).json({
         message: 'Recipe not found',
         status: 404,
+      });
+    }
+
+    const ownerId = req.user._id;
+    // Nếu không phải admin hoặc không phải công thức của mình thì không được xoá
+    if (req.user.role !== 'admin' || existingRecipe.owner !== ownerId) {
+      return res.status(403).json({
+        message: `You only can delete your own recipe.`,
+        status: 403,
       });
     }
 
@@ -412,7 +445,7 @@ exports.searchRecipesByQuery = async (req, res) => {
     const totalPages = Math.ceil(totalRecipes / limit);
 
     // Get paginated results
-    const results = await Recipe.find(searchQuery)
+    const results = await Recipe.find({ ...searchQuery, status: 'Public' })
       .sort(sortObj)
       .skip(parseInt(cursor))
       .limit(parseInt(limit))

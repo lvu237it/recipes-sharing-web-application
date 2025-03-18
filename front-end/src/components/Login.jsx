@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, Typography, message, Layout } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import '../CSS/Log.css';
+import { useCommon } from '../contexts/CommonContext';
 
 const { Title } = Typography;
 const { Content } = Layout;
@@ -11,6 +12,7 @@ const SlidingAuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loginForm] = Form.useForm();
   const [registerForm] = Form.useForm();
+  const { userDataLocal, navigate } = useCommon();
 
   const toggleForm = () => {
     setIsLogin(!isLogin);
@@ -54,18 +56,25 @@ const SlidingAuthForm = () => {
 
       // Trích xuất dữ liệu cần thiết từ userData
       const { _id, username, email } = response.data.userData;
-      const filteredUserData = { _id, username, email };
+      const role = response.data.role;
+      const filteredUserData = { _id, username, email, role };
 
       // Lưu userData vào localStorage
       localStorage.setItem('userData', JSON.stringify(filteredUserData));
 
       // Điều hướng người dùng
-      window.location.href = '/recipe-list';
+      window.location.href = '/';
     } catch (error) {
       console.error('Lỗi đăng nhập:', error);
       message.error(error.response?.data?.message || 'Đăng nhập thất bại');
     }
   };
+
+  useEffect(() => {
+    if (userDataLocal) {
+      navigate('/');
+    }
+  }, [userDataLocal]);
 
   return (
     <Layout>
