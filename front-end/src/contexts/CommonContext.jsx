@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useMediaQuery } from 'react-responsive';
 import { Toaster, toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const CommonContext = createContext();
 
@@ -20,6 +20,12 @@ export const Common = ({ children }) => {
     useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const accessToken = localStorage.getItem('accessToken');
+  const [userDataLocal, setUserDataLocal] = useState(() => {
+    return JSON.parse(localStorage.getItem('userData')) || null;
+  });
+  // let userDataLocal = JSON.parse(localStorage.getItem('userData'));
 
   const listOfCategories = [
     'món chính',
@@ -64,8 +70,7 @@ export const Common = ({ children }) => {
   const [totalPages, setTotalPages] = useState(0);
   const [itemsPerPage] = useState(10);
   const [isLoading, setIsLoading] = useState(false);
-
-  const isMobile = useMediaQuery({ maxWidth: 768 });
+  const [savedRecipes, setSavedRecipes] = useState([]);
 
   // Get recipes with all possible filters
   const getRecipes = async (page = 0) => {
@@ -127,27 +132,65 @@ export const Common = ({ children }) => {
     }
   }, [searchRecipeInput, selectedCategory, sortOrder]);
 
-  // SaverId là id của user đã lưu công thức
-  const saverId = '67bf0492b8e677402c59129c';
-
-  // Fetch saved recipes khi mount và khi saverId thay đổi
   useEffect(() => {
     const fetchSavedRecipes = async () => {
+      if (!userDataLocal?._id || !accessToken) {
+        toast.error('Vui lòng đăng nhập để sử dụng tính năng này');
+        return;
+      }
+
+      // setIsLoadingSavedRecipes(true);
       try {
         const response = await axios.get(
-          `http://localhost:3000/saved-recipes/all-saved-recipes-by-user-id/${saverId}`
+          `http://localhost:3000/saved-recipes/all-saved-recipes-by-user-id/${userDataLocal._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+          }
         );
 
-        // Lấy danh sách `recipe` từ response.data
-        const savedRecipeIdsList = response.data.map((item) => item.recipe);
-        setSavedRecipeIds(savedRecipeIdsList);
+        // Check if response has the correct structure
+        if (response.data.status === 'success' && response.data.data) {
+          // Update savedRecipes with full recipe data
+          setSavedRecipes(response.data.data);
+
+          // Update savedRecipeIds with just the recipe IDs
+          const savedRecipeIdsList = response.data.data.map(
+            (item) => item.recipe._id
+          );
+          setSavedRecipeIds(savedRecipeIdsList);
+
+          console.log(
+            'Saved recipes fetched successfully:',
+            response.data.data
+          );
+          // setIsLoadingSavedRecipes(false);
+        } else {
+          console.error('Unexpected response structure:', response.data);
+          // toast.error('Có lỗi khi tải dữ liệu công thức đã lưu');
+        }
       } catch (error) {
-        console.error('Lỗi tải danh sách đã lưu:', error);
+        console.error('Error fetching saved recipes:', error.response || error);
+        const errorMessage =
+          error.response?.data?.message ||
+          'Có lỗi xảy ra khi tải danh sách công thức đã lưu';
+        // toast.error(errorMessage);
       }
+      // finally {
+      //   setIsLoadingSavedRecipes(false);
+      // }
     };
 
-    fetchSavedRecipes();
-  }, [saverId]);
+    if (
+      accessToken ||
+      userDataLocal?._id ||
+      location.pathname === '/saved-recipes'
+    ) {
+      fetchSavedRecipes();
+    }
+  }, [userDataLocal?._id, accessToken, location.pathname]); // Add accessToken as dependency
 
   // Hàm xử lý toggle trạng thái lưu
   const handleSaveToggle = async (recipeId) => {
@@ -171,16 +214,26 @@ export const Common = ({ children }) => {
       // Gọi API tương ứng
       const endpoint = isSaved ? 'unsave' : 'save';
 
+      let saverId = userDataLocal._id;
+
       if (endpoint === 'unsave') {
         await axios.delete(
           `http://localhost:3000/saved-recipes/unsave-from-favorite-list/${recipeId}`,
-          { data: { saverId } }
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
         );
         toast.success('Đã bỏ lưu công thức!');
       } else {
         await axios.post(
           `http://localhost:3000/saved-recipes/save-to-my-favorite-recipes/${recipeId}`,
-          { saverId }
+          { saverId },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+          }
         );
         toast.success('Đã lưu công thức!');
       }
@@ -197,7 +250,7 @@ export const Common = ({ children }) => {
       const response = await axios.post(
         `http://localhost:3000/saved-recipes/save-to-my-favorite-recipes/${recipeId}`,
         {
-          saverId: '67bf0492b8e677402c59129c', // Đưa saverId vào đây
+          saverId: userDataLocal._id,
         },
         {
           headers: {
@@ -219,10 +272,12 @@ export const Common = ({ children }) => {
   //Bỏ lưu công thức khỏi danh sách yêu thích
   const handleUnsaveRecipe = async (recipeId) => {
     try {
+      let saverId = userDataLocal._id;
       const response = await axios.delete(
         `http://localhost:3000/saved-recipes/unsave-from-favorite-list/${recipeId}`,
         {
-          data: { saverId: '67bf0492b8e677402c59129c' },
+          headers: { Authorization: `Bearer ${accessToken}` },
+          data: { saverId }, // 👈 Đặt `data` ở đây
         }
       );
 
@@ -266,6 +321,11 @@ export const Common = ({ children }) => {
         isLoading,
         handlePageChange,
         itemsPerPage,
+        savedRecipes,
+        setSavedRecipes,
+        userDataLocal,
+        setUserDataLocal,
+        accessToken,
       }}
     >
       {children}
