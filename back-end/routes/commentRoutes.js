@@ -1,6 +1,8 @@
+// commentRoutes.js
+
 const express = require("express");
 const router = express.Router();
-
+const { protect } = require("../utils/auth");
 const commentController = require("../controllers/commentController");
 
 // Get all comments for a specific recipe
@@ -8,29 +10,35 @@ router.get("/recipe/:recipeId/comments", commentController.getAllComments);
 
 // Admin routes
 router.post(
-  "/admin/:adminId/recipe/:recipeId/add-comment",
+  "/admin/recipe/:recipeId/add-comment",
+  protect,
   commentController.adminAddComment
 );
 router.patch(
-  "/admin/:adminId/recipe/:recipeId/edit-comment/:commentId",
+  "/admin/recipe/:recipeId/edit-comment/:commentId",
+  protect,
   commentController.adminEditComment
 );
 router.patch(
-  "/admin/:adminId/recipe/:recipeId/delete-comment/:commentId",
+  "/admin/recipe/:recipeId/delete-comment/:commentId",
+  protect,
   commentController.adminDeleteComment
 );
 
 // User routes
 router.post(
-  "/user/:userId/recipe/:recipeId/add-comment",
+  "/user/recipe/:recipeId/add-comment",
+  protect,
   commentController.userAddComment
 );
 router.patch(
-  "/user/:userId/recipe/:recipeId/edit-comment/:commentId",
+  "/user/recipe/:recipeId/edit-comment/:commentId",
+  protect,
   commentController.userEditComment
 );
 router.patch(
-  "/user/:userId/recipe/:recipeId/delete-comment/:commentId",
+  "/user/recipe/:recipeId/delete-comment/:commentId",
+  protect,
   commentController.userDeleteComment
 );
 
