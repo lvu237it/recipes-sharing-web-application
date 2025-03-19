@@ -105,6 +105,7 @@ exports.loginUser = async (req, res) => {
       success: true,
       accessToken,
       userData,
+      role,
     });
   } catch (error) {
     console.error("Error while logging in:", error);

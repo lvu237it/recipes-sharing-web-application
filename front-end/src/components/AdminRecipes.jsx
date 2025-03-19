@@ -10,10 +10,11 @@ import {
   Col,
   Button,
 } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import ReactPaginate from 'react-paginate';
 import foodCategories from '../utils/FoodCategories'; // Import danh mục cứng
 // import { debounce } from "lodash";
+import { RiArrowGoBackLine } from 'react-icons/ri';
 
 const statusMapping = {
   Pending_Approval: 'Chờ duyệt',
@@ -94,6 +95,20 @@ const AdminRecipes = () => {
 
   return (
     <Container>
+      <Link to={'/'}>
+        <RiArrowGoBackLine
+          title='Quay lại'
+          className='ri-arrow-go-back-line-recipe-detail m-3'
+          style={{
+            position: 'absolute',
+            top: 10,
+            fontSize: 32,
+            padding: 5,
+            borderRadius: '99%',
+            color: 'black',
+          }}
+        />
+      </Link>
       <h1
         className='text-center my-4'
         style={{ fontFamily: 'Pacifico, cursive' }}

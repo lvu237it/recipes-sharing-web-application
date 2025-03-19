@@ -2,29 +2,34 @@ const express = require('express');
 const router = express.Router();
 const savedRecipeController = require('../controllers/savedRecipeController');
 const recipeController = require('../controllers/recipeController');
+const { protect } = require('../utils/auth');
 
-router.get('/', savedRecipeController.getAllSavedRecipes);
+router.get('/', protect, savedRecipeController.getAllSavedRecipes);
 router.get(
   '/get-all-infor-of-saved-recipe/:savedRecipeId',
-  savedRecipeController.checkIfSavedRecipeIsExist,
+  protect,
   savedRecipeController.getInformationOfSavedRecipe
 );
 router.get(
   '/all-saved-recipes-by-user-id/:saverId',
-  // savedRecipeController.checkSaverIsExist,
+  protect,
   savedRecipeController.getSavedRecipesBySaverId
 );
 
 router.post(
   '/save-to-my-favorite-recipes/:recipeId',
-  recipeController.checkIfRecipeIsExist,
+  protect,
   savedRecipeController.saveRecipeToFavoriteList
 );
 router.delete(
   '/unsave-from-favorite-list/:recipeId',
-  recipeController.checkIfRecipeIsExist,
+  protect,
   savedRecipeController.unsaveRecipeFromFavoriteList
 );
-router.post('/check-is-saved', savedRecipeController.checkARecipeIsSaved);
+router.post(
+  '/check-is-saved',
+  protect,
+  savedRecipeController.checkARecipeIsSaved
+);
 
 module.exports = router;
