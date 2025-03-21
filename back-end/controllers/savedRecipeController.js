@@ -180,6 +180,53 @@ exports.getAllSavedRecipes = async (req, res, next) => {
 };
 
 // ok
+// exports.getSavedRecipesBySaverId = async (req, res, next) => {
+//   try {
+//     const { saverId } = req.params;
+
+//     // Check if user is authenticated
+//     if (!req.user) {
+//       return res.status(403).json({
+//         status: 'error',
+//         message: 'Access denied. Please login to view saved recipes.',
+//       });
+//     }
+
+//     // If user is not admin, they can only view their own saved recipes
+//     if (req.user.role !== 'admin' && req.user._id.toString() !== saverId) {
+//       return res.status(403).json({
+//         status: 'error',
+//         message: 'Access denied. You can only view your own saved recipes.',
+//       });
+//     }
+
+//     let results = await SavedRecipe.find({ saver: saverId }).populate('recipe');
+
+//     // Lọc các recipe không bị xóa (isDeleted = false)
+//     results = results.filter(
+//       (savedRecipe) => savedRecipe.recipe && !savedRecipe.recipe.isDeleted
+//     );
+
+//     console.log('Filtered saved recipes', results);
+
+//     if (results.length === 0) {
+//       return next(new AppError('No saved recipes found for this user', 404));
+//     }
+
+//     res.status(200).json({
+//       status: 'success',
+//       role: req.user.role,
+//       data: results,
+//     });
+//   } catch (error) {
+//     console.error('Error getting saved recipes by saver id', error);
+//     res.status(500).json({
+//       status: 'error',
+//       message: 'Failed to get saved recipes by saver id.',
+//     });
+//   }
+// };
+
 exports.getSavedRecipesBySaverId = async (req, res, next) => {
   try {
     const { saverId } = req.params;
@@ -200,10 +247,19 @@ exports.getSavedRecipesBySaverId = async (req, res, next) => {
       });
     }
 
-    const results = await SavedRecipe.find({
-      saver: saverId,
-      isDeleted: false,
-    }).populate('recipe');
+    let results = await SavedRecipe.find({ saver: saverId })
+      .populate('recipe')
+      .sort({ createdAt: -1 }); // Sắp xếp theo ngày mới nhất trước
+
+    // Lọc các recipe không bị xóa (isDeleted = false)
+    results = results.filter(
+      (savedRecipe) =>
+        savedRecipe.recipe &&
+        !savedRecipe.recipe.isDeleted &&
+        savedRecipe.recipe.status === 'Public'
+    );
+
+    console.log('Filtered and sorted saved recipes', results);
 
     if (results.length === 0) {
       return next(new AppError('No saved recipes found for this user', 404));

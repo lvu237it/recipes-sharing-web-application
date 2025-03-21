@@ -20,7 +20,6 @@ import defaultAvatar from '../assets/user-avatar-default.png';
 import CommentSection from './CommentSection';
 
 function RecipeDetail() {
-  const { recipeNameSlug } = useParams();
   const {
     recipes,
     setRecipes,
@@ -35,9 +34,14 @@ function RecipeDetail() {
     listOfCategories,
     userDataLocal,
     accessToken,
+    recipeChefList,
+    setRecipeChefList,
   } = useCommon();
 
   const location = useLocation();
+  const { recipeNameSlug } = useParams();
+  const source = location.state?.source || 'recipes'; // 'recipes' mặc định nếu không có state
+  const recipeList = recipeChefList || recipes; // Dùng danh sách từ state nếu có
 
   const previousPage = location.state?.from || '/'; // Mặc định về trang chủ nếu không có state
 
@@ -72,37 +76,52 @@ function RecipeDetail() {
   const loadRecipeData = async () => {
     setIsLoading(true);
     try {
-      if (recipeNameSlug) {
-        const foundRecipe = recipes.find(
-          (recipe) => recipe.slug === recipeNameSlug
-        );
-        if (foundRecipe) {
-          setRecipeViewDetails(foundRecipe);
-          // Fetch author details
-          const response = await axios.get(
-            `http://localhost:3000/recipes/${foundRecipe._id}/populate`
-          );
-          const authorData = response.data.data[0].owner;
+      console.log('Recipes Array:', recipes); // Kiểm tra danh sách recipes có dữ liệu không
+      console.log('Searching for recipe with slug:', recipeNameSlug);
 
-          // Only set loading to false when we have both recipe and author data
-          if (authorData && authorData.username) {
-            setAuthorRecipeDetails(authorData);
-            setIsLoading(false);
-          } else {
-            throw new Error('Không thể tải thông tin tác giả');
-          }
-        } else {
-          throw new Error('Không tìm thấy công thức');
+      if (recipeNameSlug) {
+        const foundRecipe = recipeList.find(
+          (recipe) => recipe.slug.toString() === recipeNameSlug.toString()
+        );
+
+        if (!foundRecipe) {
+          toast.error('Không tìm thấy công thức!');
+          setIsLoading(false);
+          return;
         }
+
+        setRecipeViewDetails(foundRecipe);
+
+        // Fetch author details nếu có foundRecipe
+        const response = await axios.get(
+          `http://localhost:3000/recipes/${foundRecipe._id}/populate`
+        );
+        const authorData = response.data.data[0]?.owner;
+
+        if (authorData && authorData.username) {
+          setAuthorRecipeDetails(authorData);
+          setIsLoading(false);
+        } else {
+          throw new Error('Không thể tải thông tin tác giả');
+        }
+      } else {
+        console.error('Không có dữ liệu recipes hoặc slug');
+        setIsLoading(false);
       }
     } catch (error) {
-      console.error('Error loading recipe data:', error);
+      console.error('Lỗi khi tải dữ liệu công thức:', error);
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
     loadRecipeData();
+
+    return () => {
+      setRecipeViewDetails(null);
+      setAuthorRecipeDetails(null);
+      setIsLoading(true);
+    };
   }, [recipeNameSlug, recipes]);
 
   useEffect(() => {
@@ -197,10 +216,11 @@ function RecipeDetail() {
   }, []);
 
   const handleDeleteRecipe = async (recipeId) => {
+    console.log('accesstoken', accessToken);
     try {
       const response = await axios.patch(
         `http://localhost:3000/recipes/delete-recipe/${recipeId}`,
-        {}, // 👈 Không có dữ liệu cần cập nhật, để trống {}
+        {}, // Không có payload thì truyền object rỗng
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -211,27 +231,14 @@ function RecipeDetail() {
 
       setOpenOptionsRecipeDetailModal(false);
       if (response.status === 200) {
-        const promise = () =>
-          new Promise((resolve) =>
-            setTimeout(
-              () => resolve({ name: 'my-toast-deleting-recipe' }),
-              2000
-            )
-          );
-        toast.promise(promise, {
-          loading: 'Vui lòng chờ...',
-          success: () => {
-            setRecipes((prevRecipes) =>
-              prevRecipes.filter((recipe) => recipe._id !== recipeId)
-            );
-            setTimeout(() => {
-              setSearchRecipeInput('');
-              navigate('/');
-            }, 1000);
-            return `Xoá công thức thành công!`;
-          },
-          error: 'Đã có lỗi xảy ra. Vui lòng thử lại.',
-        });
+        toast.success('Xoá công thức thành công!');
+        setRecipes((prevRecipes) =>
+          prevRecipes.filter((recipe) => recipe._id !== recipeId)
+        );
+        setTimeout(() => {
+          setSearchRecipeInput('');
+          navigate('/');
+        }, 1000);
       }
     } catch (error) {
       console.error('Error deleting recipe:', error);
@@ -266,12 +273,12 @@ function RecipeDetail() {
           try {
             // Only include fields that have been modified
             const updateData = {};
-            if (editFormData.title !== recipeViewDetails.title) {
+            if (editFormData.title !== recipeViewDetails?.title) {
               updateData.title = editFormData.title;
             }
             if (
               editFormData.description !==
-              recipeViewDetails.description
+              recipeViewDetails?.description
                 .replace(/<div>|<\/div>/g, '\\n')
                 .replace(/\\n/g, '\n')
             ) {
@@ -279,31 +286,31 @@ function RecipeDetail() {
             }
             if (
               JSON.stringify(editFormData.foodCategories) !==
-              JSON.stringify(recipeViewDetails.foodCategories)
+              JSON.stringify(recipeViewDetails?.foodCategories)
             ) {
               updateData.foodCategories = editFormData.foodCategories;
             }
             if (
               JSON.stringify(editFormData.ingredients) !==
-              JSON.stringify(recipeViewDetails.ingredients)
+              JSON.stringify(recipeViewDetails?.ingredients)
             ) {
               updateData.ingredients = editFormData.ingredients;
             }
             if (
               JSON.stringify(editFormData.sources) !==
-              JSON.stringify(recipeViewDetails.sources)
+              JSON.stringify(recipeViewDetails?.sources)
             ) {
               updateData.sources = editFormData.sources;
             }
             if (
               JSON.stringify(editFormData.steps) !==
-              JSON.stringify(recipeViewDetails.steps)
+              JSON.stringify(recipeViewDetails?.steps)
             ) {
               updateData.steps = editFormData.steps;
             }
 
             const response = await axios.patch(
-              `http://localhost:3000/recipes/update-recipe/${recipeViewDetails._id}`,
+              `http://localhost:3000/recipes/update-recipe/${recipeViewDetails?._id}`,
               updateData,
               {
                 headers: {
@@ -317,7 +324,7 @@ function RecipeDetail() {
               setRecipeViewDetails(response.data.data);
               setRecipes((prevRecipes) =>
                 prevRecipes.map((recipe) =>
-                  recipe._id === recipeViewDetails._id
+                  recipe._id === recipeViewDetails?._id
                     ? response.data.data
                     : recipe
                 )
@@ -419,7 +426,7 @@ function RecipeDetail() {
                 position: 'sticky',
                 top: 0,
                 left: 0,
-                background: '#f7f0ed',
+                background: '#528135',
                 zIndex: 1,
                 borderBottom: '0.2px solid rgba(0, 0, 0, 0.1)',
               }}
@@ -619,7 +626,7 @@ function RecipeDetail() {
               </div>
             </div>
 
-            {recipeViewDetails.sources.length > 0 && (
+            {recipeViewDetails?.sources.length > 0 && (
               <div
                 className=''
                 style={{
@@ -633,7 +640,7 @@ function RecipeDetail() {
                 {recipeViewDetails?.sources.map((source, index) => (
                   <span key={index}>
                     {source}
-                    {index < recipeViewDetails.sources.length - 1 && ', '}
+                    {index < recipeViewDetails?.sources.length - 1 && ', '}
                   </span>
                 ))}
               </div>

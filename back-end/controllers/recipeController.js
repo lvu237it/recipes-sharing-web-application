@@ -1,5 +1,6 @@
 const Recipe = require('../models/recipeModel');
 const AppError = require('../utils/appError');
+const ObjectId = require('mongodb');
 
 // Get all recipes
 exports.getAllRecipes = async (req, res) => {
@@ -231,7 +232,7 @@ exports.createNewRecipe = async (req, res) => {
 
     const ownerId = req.user._id;
 
-    if (req.user.role !== 'user' || req.user.role !== 'admin') {
+    if (req.user.role !== 'user' && req.user.role !== 'admin') {
       return res.status(403).json({
         message: `You need to login to create new recipe.`,
         status: 403,
@@ -255,7 +256,7 @@ exports.createNewRecipe = async (req, res) => {
       description,
       ingredients: parseIfString(ingredients),
       steps: parseIfString(steps),
-      owner: owner || ownerId,
+      owner: parseIfString(ownerId) || parseIfString(owner),
       sources: parseIfString(sources),
     });
 
@@ -290,6 +291,7 @@ exports.updateRecipe = async (req, res) => {
       status,
     } = req.body;
     const { recipeId } = req.params;
+    console.log('recipdid', recipeId);
 
     // Kiểm tra sự tồn tại của recipeId trong cơ sở dữ liệu
     const existingRecipe = await Recipe.find({
@@ -305,11 +307,9 @@ exports.updateRecipe = async (req, res) => {
       });
     }
 
-    const ownerId = req.user._id;
-    // Nếu không phải công thức của mình thì không được update
-    if (existingRecipe.owner !== ownerId) {
+    if (existingRecipe[0].owner === req.user._id) {
       return res.status(403).json({
-        message: `You only can update your own recipe.`,
+        message: `You only can delete your own recipe.`,
         status: 403,
       });
     }
@@ -351,7 +351,9 @@ exports.updateRecipe = async (req, res) => {
 // Delete a recipe
 exports.deleteRecipe = async (req, res) => {
   try {
-    const recipeId = req.recipe;
+    const { recipeId } = req.params;
+
+    console.log('recipeId', recipeId);
 
     // Kiểm tra sự tồn tại của recipeId trong cơ sở dữ liệu
     const existingRecipe = await Recipe.find({
@@ -367,9 +369,7 @@ exports.deleteRecipe = async (req, res) => {
       });
     }
 
-    const ownerId = req.user._id;
-    // Nếu không phải admin hoặc không phải công thức của mình thì không được xoá
-    if (req.user.role !== 'admin' || existingRecipe.owner !== ownerId) {
+    if (existingRecipe[0].owner === req.user._id) {
       return res.status(403).json({
         message: `You only can delete your own recipe.`,
         status: 403,

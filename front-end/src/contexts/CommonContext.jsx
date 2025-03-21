@@ -69,12 +69,14 @@ export const Common = ({ children }) => {
   const [currentPage, setCurrentPage] = useState(0); // Changed to 0-based for react-paginate
   const [totalPages, setTotalPages] = useState(0);
   const [itemsPerPage] = useState(10);
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
   const [savedRecipes, setSavedRecipes] = useState([]);
+  const [communityChefsList, setCommunityChefsList] = useState([]);
+  const [recipeChefList, setRecipeChefList] = useState([]);
 
   // Get recipes with all possible filters
   const getRecipes = async (page = 0) => {
-    setIsLoading(true);
+    // setIsLoading(true);
     try {
       const cursor = page * itemsPerPage;
       let response;
@@ -109,9 +111,10 @@ export const Common = ({ children }) => {
     } catch (error) {
       console.error('Failed to fetch recipes:', error);
       toast.error('Có lỗi xảy ra khi tải dữ liệu! Vui lòng thử lại.');
-    } finally {
-      setIsLoading(false);
     }
+    // finally {
+    //   setIsLoading(false);
+    // }
   };
 
   // Effect to handle pagination and filters
@@ -131,6 +134,15 @@ export const Common = ({ children }) => {
       setCurrentPage(0);
     }
   }, [searchRecipeInput, selectedCategory, sortOrder]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const response = await axios.get('http://localhost:3000/users');
+      setCommunityChefsList(response.data);
+    };
+    fetchUser();
+    console.log(communityChefsList);
+  }, []);
 
   useEffect(() => {
     const fetchSavedRecipes = async () => {
@@ -318,7 +330,7 @@ export const Common = ({ children }) => {
         totalPages,
         searchRecipeInput,
         setSearchRecipeInput,
-        isLoading,
+        // isLoading,
         handlePageChange,
         itemsPerPage,
         savedRecipes,
@@ -326,6 +338,10 @@ export const Common = ({ children }) => {
         userDataLocal,
         setUserDataLocal,
         accessToken,
+        communityChefsList,
+        setCommunityChefsList,
+        recipeChefList,
+        setRecipeChefList,
       }}
     >
       {children}

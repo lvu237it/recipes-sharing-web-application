@@ -1,60 +1,85 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useDebounce } from 'use-debounce';
-import {
-  Button,
-  Image,
-  Form,
-  InputGroup,
-  Col,
-  Row,
-  Spinner,
-} from 'react-bootstrap';
-import { useCommon } from '../contexts/CommonContext';
 import { Link } from 'react-router-dom';
-import { Dropdown } from 'react-bootstrap';
-import { Modal } from 'react-bootstrap';
-import { BiPencil, BiImageAdd } from 'react-icons/bi';
-import ReactPaginate from 'react-paginate';
-import axios from 'axios';
-import { HiMiniBellAlert } from 'react-icons/hi2';
-import { FaRegCircleUser } from 'react-icons/fa6';
-import { GiCook } from 'react-icons/gi';
-import { PiChefHat } from 'react-icons/pi';
-import { CiBookmarkCheck } from 'react-icons/ci';
-import { IoHomeOutline } from 'react-icons/io5';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faKitchenSet } from '@fortawesome/free-solid-svg-icons';
+import { RiArrowGoBackLine } from 'react-icons/ri';
+import { useCommon } from '../contexts/CommonContext';
+import ChefCard from './ChefCard';
 
 function ChefsCommunity() {
-  const {
-    recipes,
-    setRecipes,
-    selectedCategory,
-    setSelectedCategory,
-    filteredRecipes,
-    setFilteredRecipes,
-    listOfCategories,
-    sortOrder,
-    setSortOrder,
-    Toaster,
-    toast,
-    handleSaveRecipe,
-    handleUnsaveRecipe,
-    handleSaveToggle,
-    savedRecipeIds,
-    setSavedRecipeIds,
-    currentPage,
-    setCurrentPage,
-    generatePageNumbers,
-    totalPages,
-    handlePageChange,
-    isLoading,
-    searchRecipeInput,
-    setSearchRecipeInput,
-    navigate,
-  } = useCommon();
+  const { Toaster, communityChefsList } = useCommon();
 
-  return <>ChefsCommunity</>;
+  return (
+    <div
+      className='wrapper-chefs'
+      style={{
+        width: '100%',
+        minHeight: '100vh',
+        margin: 'auto',
+        position: 'relative',
+        backgroundColor: '#ECE7E3',
+      }}
+    >
+      <Toaster richColors />
+      <div
+        className='chef-community-header'
+        style={{
+          position: 'sticky',
+          top: 0,
+          left: 0,
+          background: '#528135',
+          zIndex: 1,
+          borderBottom: '0.2px solid rgba(0, 0, 0, 0.1)',
+          marginBottom: 20,
+          padding: '10px 0',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <div style={{ position: 'relative' }}>
+          <Link to={'/'}>
+            <RiArrowGoBackLine
+              title='Quay lại'
+              className='back-button'
+              style={{
+                fontSize: 32,
+                padding: 5,
+                borderRadius: '99%',
+                color: 'white',
+                marginLeft: 15,
+              }}
+            />
+          </Link>
+        </div>
+      </div>
+
+      <div className='container'>
+        {communityChefsList.length === 0 ? (
+          <div className='no-data-message'>
+            Không có dữ liệu về cộng đồng đầu bếp
+          </div>
+        ) : (
+          <div
+            className='chefs-container d-flex'
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: 10,
+              padding: 20,
+            }}
+          >
+            {communityChefsList.map((chef) => (
+              <div
+                style={{ width: '40%' }}
+                className='chef-item'
+                key={chef?._id}
+              >
+                <ChefCard chef={chef} />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default ChefsCommunity;

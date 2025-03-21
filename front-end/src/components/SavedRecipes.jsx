@@ -77,7 +77,7 @@ function SavedRecipes() {
           position: 'sticky',
           top: 0,
           left: 0,
-          background: '#f7f0ed',
+          background: '#528135',
           zIndex: 1,
           borderBottom: '0.2px solid rgba(0, 0, 0, 0.1)',
         }}
@@ -101,7 +101,7 @@ function SavedRecipes() {
       {/* Recipe display logic */}
       {savedRecipes.length === 0 && searchSavedRecipeInput !== '' ? (
         <div className='text-center my-4'>
-          Không tìm thấy công thức đã lưu"
+          Không tìm thấy công thức đã lưu
           {searchSavedRecipeInput}"
         </div>
       ) : savedRecipes.length === 0 ? (

@@ -15,6 +15,23 @@ const Recipe = require('../models/recipeModel');
 //   }
 // };
 
+exports.getAllUser = async (req, res) => {
+  try {
+    const user = await User.find().select(
+      'username role email avatar description'
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error while getting user:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 //Get User in4 by userID
 exports.getUserById = async (req, res) => {
   try {
@@ -50,49 +67,62 @@ exports.getUserById = async (req, res) => {
   }
 };
 
+// // Get all recipes of an user
+// exports.findAllRecipesByUser = async (req, res) => {
+//   try {
+//     const { userId } = req.params;
+//     const loggedInUserId = req.user._id; // Lấy ID user từ token
+
+//     console.log('🔹 userId from params:', userId);
+//     console.log('🔹 loggedInUserId from token:', loggedInUserId);
+//     // Kiểm tra userId hợp lệ
+//     if (!mongoose.Types.ObjectId.isValid(userId)) {
+//       return res.status(400).json({ message: 'Invalid User ID format.' });
+//     }
+
+//     // Kiểm tra quyền truy cập
+//     if (userId !== loggedInUserId.toString()) {
+//       return res
+//         .status(403)
+//         .json({ message: 'Forbidden - You can only view your own recipes.' });
+//     }
+
+//     // Lấy page và limit từ query params, mặc định page = 1, limit = 10
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 10;
+//     const skip = (page - 1) * limit;
+
+//     // Đếm tổng số công thức
+//     const totalRecipes = await Recipe.countDocuments({ owner: userId });
+
+//     // Lấy danh sách công thức có phân trang
+//     const recipes = await Recipe.find({ owner: userId })
+//       .skip(skip)
+//       .limit(limit);
+
+//     // Tính tổng số trang
+//     const totalPages = Math.ceil(totalRecipes / limit);
+
+//     res.status(200).json({
+//       message: 'success',
+//       currentPage: page,
+//       totalPages,
+//       totalRecipes,
+//       data: recipes,
+//     });
+//   } catch (error) {
+//     console.error('Error while getting recipes by user ID:', error);
+//     res.status(500).json({ message: 'Server error', error: error.message });
+//   }
+// };
+
 // Get all recipes of an user
 exports.findAllRecipesByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const loggedInUserId = req.user._id; // Lấy ID user từ token
+    const recipes = await Recipe.find({ owner: userId });
 
-    console.log('🔹 userId from params:', userId);
-    console.log('🔹 loggedInUserId from token:', loggedInUserId);
-    // Kiểm tra userId hợp lệ
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: 'Invalid User ID format.' });
-    }
-
-    // Kiểm tra quyền truy cập
-    if (userId !== loggedInUserId.toString()) {
-      return res
-        .status(403)
-        .json({ message: 'Forbidden - You can only view your own recipes.' });
-    }
-
-    // Lấy page và limit từ query params, mặc định page = 1, limit = 10
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    // Đếm tổng số công thức
-    const totalRecipes = await Recipe.countDocuments({ owner: userId });
-
-    // Lấy danh sách công thức có phân trang
-    const recipes = await Recipe.find({ owner: userId })
-      .skip(skip)
-      .limit(limit);
-
-    // Tính tổng số trang
-    const totalPages = Math.ceil(totalRecipes / limit);
-
-    res.status(200).json({
-      message: 'success',
-      currentPage: page,
-      totalPages,
-      totalRecipes,
-      data: recipes,
-    });
+    res.status(200).json(recipes);
   } catch (error) {
     console.error('Error while getting recipes by user ID:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
