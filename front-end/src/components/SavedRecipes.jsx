@@ -101,7 +101,7 @@ function SavedRecipes() {
       {/* Recipe display logic */}
       {savedRecipes.length === 0 && searchSavedRecipeInput !== '' ? (
         <div className='text-center my-4'>
-          Không tìm thấy công thức đã lưu"
+          Không tìm thấy công thức đã lưu
           {searchSavedRecipeInput}"
         </div>
       ) : savedRecipes.length === 0 ? (
