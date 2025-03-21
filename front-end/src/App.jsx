@@ -7,7 +7,8 @@ import AdminRecipes from './components/AdminRecipes';
 import AdminRecipeDetail from './components/AdminRecipeDetails';
 import Login from './components/Login';
 import SavedRecipes from './components/SavedRecipes';
-
+import ChefsCommunity from './components/ChefsCommunity';
+import ChefDetail from './components/ChefDetail';
 
 function App() {
   return (
@@ -15,14 +16,16 @@ function App() {
       <Routes>
         <Route path='/' element={<RecipesList />} />
         <Route path='/saved-recipes' element={<SavedRecipes />} />
+        <Route path='/community-chef' element={<ChefsCommunity />} />
+        <Route path='/chef/:id' element={<ChefDetail />} />
         <Route path='/login' element={<Login />} />
         <Route
-          path="/recipe-details/:recipeNameSlug"
+          path='/recipe-details/:recipeNameSlug'
           element={<RecipeDetail />}
         />
-        <Route path="/admin/recipes" element={<AdminRecipes />} />
+        <Route path='/admin/recipes' element={<AdminRecipes />} />
         <Route
-          path="/admin/recipes/:recipeId"
+          path='/admin/recipes/:recipeId'
           element={<AdminRecipeDetail />}
         />
       </Routes>

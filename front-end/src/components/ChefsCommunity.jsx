@@ -1,180 +1,83 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useDebounce } from 'use-debounce';
-import {
-  Button,
-  Image,
-  Form,
-  InputGroup,
-  Col,
-  Row,
-  Spinner,
-} from 'react-bootstrap';
-import { useCommon } from '../contexts/CommonContext';
 import { Link } from 'react-router-dom';
-import { Dropdown } from 'react-bootstrap';
-import { Modal } from 'react-bootstrap';
-import { BiPencil, BiImageAdd } from 'react-icons/bi';
-import ReactPaginate from 'react-paginate';
-import axios from 'axios';
-import { HiMiniBellAlert } from 'react-icons/hi2';
-import { FaRegCircleUser } from 'react-icons/fa6';
-import { GiCook } from 'react-icons/gi';
-import { PiChefHat } from 'react-icons/pi';
-import { CiBookmarkCheck } from 'react-icons/ci';
-import { IoHomeOutline } from 'react-icons/io5';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faKitchenSet } from '@fortawesome/free-solid-svg-icons';
 import { RiArrowGoBackLine } from 'react-icons/ri';
-import { useLocation } from 'react-router-dom';
+import { useCommon } from '../contexts/CommonContext';
+import ChefCard from './ChefCard';
 
 function ChefsCommunity() {
-  const {
-    recipes,
-    setRecipes,
-    selectedCategory,
-    setSelectedCategory,
-    filteredRecipes,
-    setFilteredRecipes,
-    listOfCategories,
-    sortOrder,
-    setSortOrder,
-    Toaster,
-    toast,
-    handleSaveRecipe,
-    handleUnsaveRecipe,
-    handleSaveToggle,
-    savedRecipeIds,
-    setSavedRecipeIds,
-    currentPage,
-    setCurrentPage,
-    generatePageNumbers,
-    totalPages,
-    handlePageChange,
-    searchRecipeInput,
-    setSearchRecipeInput,
-    navigate,
-    userDataLocal,
-    communityChefsList,
-    setCommunityChefsList,
-  } = useCommon();
-  const [searchSavedRecipeInput, setSearchSavedRecipeInput] = useState('');
-  const location = useLocation();
+  const { Toaster, communityChefsList } = useCommon();
 
   return (
     <div
-      className='wrapper-recipes'
+      className='wrapper-chefs'
       style={{
         width: '100%',
         minHeight: '100vh',
         margin: 'auto',
         position: 'relative',
+        backgroundColor: '#ECE7E3',
       }}
     >
       <Toaster richColors />
       <div
-        className='recipe-detail-header'
+        className='chef-community-header'
         style={{
           position: 'sticky',
           top: 0,
           left: 0,
-          background: '#f7f0ed',
+          background: '#528135',
           zIndex: 1,
           borderBottom: '0.2px solid rgba(0, 0, 0, 0.1)',
+          marginBottom: 20,
+          padding: '10px 0',
+          display: 'flex',
+          alignItems: 'center',
         }}
       >
         <div style={{ position: 'relative' }}>
           <Link to={'/'}>
             <RiArrowGoBackLine
               title='Quay lại'
-              className='ri-arrow-go-back-line-recipe-detail m-3'
+              className='back-button'
               style={{
                 fontSize: 32,
                 padding: 5,
                 borderRadius: '99%',
-                color: 'black',
+                color: 'white',
+                marginLeft: 15,
               }}
             />
           </Link>
         </div>
       </div>
 
-      {communityChefsList.length === 0 ? (
-        <div className='' style={{ width: '100%', textAlign: 'center' }}>
-          Không có dữ liệu về cộng đồng đầu bếp
-        </div>
-      ) : (
-        <>
+      <div className='container'>
+        {communityChefsList.length === 0 ? (
+          <div className='no-data-message'>
+            Không có dữ liệu về cộng đồng đầu bếp
+          </div>
+        ) : (
           <div
-            className='community-chefs-list-wrapper-border border mb-3'
+            className='chefs-container d-flex'
             style={{
-              borderRadius: '10px',
-              backgroundColor: '#fdf7f4',
-              borderColor: 'rgba(169, 169, 169, 0.1)',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: 10,
+              padding: 20,
             }}
           >
-            {communityChefsList.map((chef) => {
-              return (
-                <div className='p-4' key={chef?._id}>
-                  {/* <div
-                    key={chef?._id}
-                    className='wrapper-image-and-content d-md-grid d-flex flex-column gap-3'
-                  >
-                    <Image
-                      className='an-image-in-recipe-list p-2 shadow'
-                      src={item.recipe?.imageUrl}
-                      style={{
-                        margin: 'auto',
-                        border: '0.1px solid whitesmoke',
-                        backgroundColor: 'white',
-                        maxWidth: '100%',
-                      }}
-                    />
-                    <div
-                      className='wrapper-content-recipe'
-                      style={{ margin: '0px 15px' }}
-                    >
-                      <div
-                        className='recipe-title text-center text-md-start'
-                        style={{
-                          fontWeight: 'bolder',
-                          color: '#528135',
-                          textTransform: 'uppercase',
-                          fontSize: 32,
-                        }}
-                      >
-                        {item.recipe?.title}
-                      </div>
-                      <div
-                        className='recipe-description'
-                        style={{ margin: '10px 0', fontSize: 14 }}
-                        dangerouslySetInnerHTML={{
-                          __html: item.recipe?.description,
-                        }}
-                      ></div>
-                      <div
-                        className='recipe-actions d-flex gap-2 justify-content-md-end justify-content-center'
-                        style={{
-                          justifyContent: 'end',
-                          gap: '10px',
-                        }}
-                      >
-                        <Link
-                          to={`/recipe-details/${item.recipe?.slug}`}
-                          state={{ from: location.pathname }} // Lưu trang trước vào state
-                        >
-                          <button className='button-show-details'>
-                            Xem chi tiết
-                          </button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div> */}
-                </div>
-              );
-            })}
+            {communityChefsList.map((chef) => (
+              <div
+                style={{ width: '40%' }}
+                className='chef-item'
+                key={chef?._id}
+              >
+                <ChefCard chef={chef} />
+              </div>
+            ))}
           </div>
-        </>
-      )}
+        )}
+      </div>
     </div>
   );
 }

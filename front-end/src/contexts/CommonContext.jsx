@@ -72,6 +72,7 @@ export const Common = ({ children }) => {
   // const [isLoading, setIsLoading] = useState(false);
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [communityChefsList, setCommunityChefsList] = useState([]);
+  const [recipeChefList, setRecipeChefList] = useState([]);
 
   // Get recipes with all possible filters
   const getRecipes = async (page = 0) => {
@@ -133,6 +134,15 @@ export const Common = ({ children }) => {
       setCurrentPage(0);
     }
   }, [searchRecipeInput, selectedCategory, sortOrder]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const response = await axios.get('http://localhost:3000/users');
+      setCommunityChefsList(response.data);
+    };
+    fetchUser();
+    console.log(communityChefsList);
+  }, []);
 
   useEffect(() => {
     const fetchSavedRecipes = async () => {
@@ -330,6 +340,8 @@ export const Common = ({ children }) => {
         accessToken,
         communityChefsList,
         setCommunityChefsList,
+        recipeChefList,
+        setRecipeChefList,
       }}
     >
       {children}

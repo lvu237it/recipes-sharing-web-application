@@ -77,7 +77,7 @@ function SavedRecipes() {
           position: 'sticky',
           top: 0,
           left: 0,
-          background: '#f7f0ed',
+          background: '#528135',
           zIndex: 1,
           borderBottom: '0.2px solid rgba(0, 0, 0, 0.1)',
         }}
