@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Typography, message, Layout } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import axios from 'axios';
@@ -11,6 +12,7 @@ const SlidingAuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loginForm] = Form.useForm();
   const [registerForm] = Form.useForm();
+  const navigate = useNavigate();
 
   const toggleForm = () => {
     setIsLogin(!isLogin);
@@ -95,6 +97,7 @@ const SlidingAuthForm = () => {
                   </Form.Item>
                   <Form.Item>
                     <Button type="primary" htmlType="submit" className="form-button">Đăng nhập</Button>
+                    <Button type="primary" className="form-button"  onClick={() => navigate('/forgot')}>Quên mật khẩu?</Button>
                   </Form.Item>
                 </Form>
               </div>

@@ -4,6 +4,8 @@ import RecipesList from './components/RecipesList';
 import { Routes, Route } from 'react-router-dom';
 import RecipeDetail from './components/RecipeDetail';
 import Login from './components/Login';
+import ForgotPassword from './components/ForgotPass';
+import ResetPassword from './components/ResetPass';
 
 function App() {
   return (
@@ -15,6 +17,9 @@ function App() {
           element={<RecipeDetail />}
         />
          <Route path='/login' element={<Login />} />
+         <Route path='/forgot' element={<ForgotPassword />} />
+         <Route path='/reset/:token' element={<ResetPassword />} />
+
       </Routes>
     </>
   );

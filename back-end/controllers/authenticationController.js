@@ -2,6 +2,7 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const sendMail = require("../utils/sendMail");
 const { generateAccessToken, generateRefreshToken } = require('../middlewares/jwt')
 exports.registerUser = async (req, res) => {
@@ -143,7 +144,7 @@ exports.logoutUser = async (req, res) => {
 };
 
 exports.forgotPassword = async (req, res) => {
-    const { email } = req.query;
+    const { email } = req.body;
     if (!email) throw new Error('Missing email');
 
     const user = await User.findOne({ email });
@@ -196,7 +197,7 @@ exports.forgotPassword = async (req, res) => {
         <h2>Password Reset Request</h2>
         <p>You requested a password reset. Please click the button below to reset your password.</p>
         <p>This link will expire in 15 minutes.</p>
-        <a href="${process.env.URL_SERVER}/authentication/resetpass/${resetToken}" class="button">Reset Password</a>
+        <a href="${process.env.URL_SERVER}/reset/${resetToken}" class="button">Reset Password</a>
         <p class="footer">If you did not request this, please ignore this email.</p>
     </div>
 </body>
@@ -216,7 +217,9 @@ exports.resetPassword = async (req, res) => {
     if (!password || !token) throw new Error('Missing inputs');
 
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+   
     const user = await User.findOne({ passwordResetToken: hashedToken, passwordResetExpires: { $gt: Date.now() } });
+  
 
     if (!user) throw new Error('Invalid reset token');
 
