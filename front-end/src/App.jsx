@@ -8,6 +8,7 @@ import AdminRecipeDetail from './components/AdminRecipeDetails';
 import Login from './components/Login';
 import SavedRecipes from './components/SavedRecipes';
 
+
 function App() {
   return (
     <>
@@ -16,12 +17,12 @@ function App() {
         <Route path='/saved-recipes' element={<SavedRecipes />} />
         <Route path='/login' element={<Login />} />
         <Route
-          path='/recipe-details/:recipeNameSlug'
+          path="/recipe-details/:recipeNameSlug"
           element={<RecipeDetail />}
         />
-        <Route path='/admin/recipes' element={<AdminRecipes />} />
+        <Route path="/admin/recipes" element={<AdminRecipes />} />
         <Route
-          path='/admin/recipes/:recipeId'
+          path="/admin/recipes/:recipeId"
           element={<AdminRecipeDetail />}
         />
       </Routes>
