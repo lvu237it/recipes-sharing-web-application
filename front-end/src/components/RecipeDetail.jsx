@@ -95,7 +95,7 @@ function RecipeDetail() {
       console.log('foundRecipe', foundRecipe);
 
       if (!foundRecipe) {
-        toast.error('Không tìm thấy công thức!');
+        // toast.error('Không tìm thấy công thức!');
         setIsLoading(false);
         return;
       }
@@ -753,7 +753,7 @@ function RecipeDetail() {
                   marginBottom: '20px',
                 }}
               >
-                Comments
+                Bình luận
               </h3>
               <CommentSection recipeId={recipeViewDetails?._id} />
             </div>

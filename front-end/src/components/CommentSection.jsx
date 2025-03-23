@@ -9,7 +9,7 @@ const CommentSection = ({ recipeId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const { userDataLocal } = useCommon();
+  const { userDataLocal, accessToken } = useCommon();
 
   // For editing
   const [editingCommentId, setEditingCommentId] = useState(null);
@@ -38,25 +38,20 @@ const CommentSection = ({ recipeId }) => {
     fetchComments();
   }, [recipeId, toast]);
 
-  // Check for refresh token cookie
-  const hasRefreshTokenCookie = () =>
-    document.cookie.split('; ').some((row) => row.startsWith('refreshToken='));
-
   // Add new comment
   const handleAddComment = async () => {
-    if (!currentUserId || !hasRefreshTokenCookie()) {
-      setShowLoginModal(true);
-      return;
-    }
     if (!newComment.trim()) {
       toast.warning('Nội dung bình luận không được để trống.');
       return;
     }
     try {
       const response = await axios.post(
-        `http://localhost:3000/comments/user/${currentUserId}/recipe/${recipeId}/add-comment`,
-        { content: newComment },
-        { withCredentials: true }
+        `http://localhost:3000/comments/user/recipe/${recipeId}/add-comment`,
+        { content: newComment, authorUsername: userDataLocal?.username },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          'Content-Type': 'application/json',
+        }
       );
       setComments((prev) => [...prev, response.data]);
       setNewComment('');
@@ -81,6 +76,8 @@ const CommentSection = ({ recipeId }) => {
 
   // Save edited comment
   const handleSaveEdit = async (commentId, commentUserId) => {
+    console.log('handlesaveedit', commentId, commentUserId);
+
     // Must be owner to edit
     const isOwner = commentUserId === currentUserId;
     if (!isOwner) {
@@ -97,13 +94,16 @@ const CommentSection = ({ recipeId }) => {
       // If admin, use the admin route; otherwise use the user route
       const endpoint =
         currentUserRole === 'admin'
-          ? `http://localhost:3000/comments/admin/${currentUserId}/recipe/${recipeId}/edit-comment/${commentId}`
-          : `http://localhost:3000/comments/user/${currentUserId}/recipe/${recipeId}/edit-comment/${commentId}`;
+          ? `http://localhost:3000/comments/admin/recipe/${recipeId}/edit-comment/${commentId}`
+          : `http://localhost:3000/comments/user/recipe/${recipeId}/edit-comment/${commentId}`;
 
       const response = await axios.patch(
         endpoint,
         { content: editingContent },
-        { withCredentials: true }
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          'Content-Type': 'application/json',
+        }
       );
 
       // Update local state
@@ -122,20 +122,25 @@ const CommentSection = ({ recipeId }) => {
   // Delete comment
   const handleDeleteComment = async (commentId, commentUserId) => {
     // Admin can delete any comment, user can only delete their own
-    const isOwner = commentUserId === currentUserId;
-    const isAdmin = currentUserRole === 'admin';
+    const isOwner = commentUserId === userDataLocal?._id;
 
-    if (!isAdmin && !isOwner) {
+    if (userDataLocal.role !== 'admin' && !isOwner) {
       toast.error('Bạn không có quyền xóa bình luận này.');
       return;
     }
 
     try {
-      const endpoint = isAdmin
-        ? `http://localhost:3000/comments/admin/${currentUserId}/recipe/${recipeId}/delete-comment/${commentId}`
-        : `http://localhost:3000/comments/user/${currentUserId}/recipe/${recipeId}/delete-comment/${commentId}`;
-
-      await axios.patch(endpoint, {}, { withCredentials: true });
+      const endpoint =
+        userDataLocal.role === 'admin'
+          ? `http://localhost:3000/comments/admin/recipe/${recipeId}/delete-comment/${commentId}`
+          : `http://localhost:3000/comments/user/recipe/${recipeId}/delete-comment/${commentId}`;
+      await axios.patch(
+        endpoint,
+        {},
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
       // Remove from local state
       setComments((prev) => prev.filter((c) => c._id !== commentId));
       toast.success('Xóa bình luận thành công!');
@@ -310,7 +315,7 @@ const CommentSection = ({ recipeId }) => {
       )}
 
       {/* Modal prompting user to log in */}
-      <Modal show={showLoginModal} onHide={() => setShowLoginModal(false)}>
+      {/* <Modal show={showLoginModal} onHide={() => setShowLoginModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Bạn phải đăng nhập để đăng bình luận</Modal.Title>
         </Modal.Header>
@@ -329,7 +334,7 @@ const CommentSection = ({ recipeId }) => {
             Đăng nhập
           </Button>
         </Modal.Footer>
-      </Modal>
+      </Modal> */}
     </div>
   );
 };

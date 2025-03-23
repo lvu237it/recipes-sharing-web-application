@@ -22,7 +22,7 @@ exports.getAllComments = async (req, res) => {
     if (!(await isValidRecipe(recipeId))) {
       return res.status(404).json({ error: 'Recipe does not exist.' });
     }
-    const comments = await Comment.find({ recipe: recipeId });
+    const comments = await Comment.find({ recipe: recipeId, isDeleted: false });
     res.status(200).json(comments);
   } catch (error) {
     res.status(500).json({ error: 'Failed to retrieve comments.' });
@@ -84,7 +84,7 @@ exports.adminAddComment = async (req, res) => {
 exports.userAddComment = async (req, res) => {
   try {
     const { recipeId } = req.params;
-    const { content } = req.body;
+    const { content, authorUsername } = req.body;
 
     if (!isValidObjectId(recipeId)) {
       return res.status(400).json({ error: 'Invalid recipe ID.' });
@@ -103,6 +103,7 @@ exports.userAddComment = async (req, res) => {
 
     const newComment = new Comment({
       content,
+      authorUsername,
       user: req.user._id,
       recipe: recipeId,
     });
@@ -135,11 +136,11 @@ exports.adminEditComment = async (req, res) => {
     if (!(await isValidComment(commentId))) {
       return res.status(404).json({ error: 'Comment does not exist.' });
     }
-    if (!(await isCommentMadeByUser(commentId, req.user._id))) {
-      return res
-        .status(403)
-        .json({ error: "Unauthorised: Cannot edit others' comments." });
-    }
+    // if (!(await isCommentMadeByUser(commentId, req.user._id))) {
+    //   return res
+    //     .status(403)
+    //     .json({ error: "Unauthorised: Cannot edit others' comments." });
+    // }
     const updatedComment = await Comment.findByIdAndUpdate(
       commentId,
       { content, updatedAt: Date.now() },
@@ -168,11 +169,11 @@ exports.userEditComment = async (req, res) => {
     if (!(await isValidComment(commentId))) {
       return res.status(404).json({ error: 'Comment does not exist.' });
     }
-    if (!(await isCommentMadeByUser(commentId, req.user._id))) {
-      return res
-        .status(403)
-        .json({ error: "Unauthorised: Cannot edit others' comments." });
-    }
+    // if (!(await isCommentMadeByUser(commentId, req.user._id))) {
+    //   return res
+    //     .status(403)
+    //     .json({ error: "Unauthorised: Cannot edit others' comments." });
+    // }
     const updatedComment = await Comment.findByIdAndUpdate(
       commentId,
       { content, updatedAt: Date.now() },
@@ -222,11 +223,13 @@ exports.userDeleteComment = async (req, res) => {
     if (!(await isValidComment(commentId))) {
       return res.status(404).json({ error: 'Comment does not exist.' });
     }
-    if (!(await isCommentMadeByUser(commentId, req.user._id))) {
-      return res
-        .status(403)
-        .json({ error: "Unauthorised: Cannot delete others' comments." });
-    }
+
+    // if (!(await isCommentMadeByUser(commentId, req.user._id))) {
+    //   return res
+    //     .status(403)
+    //     .json({ error: "Unauthorised: Cannot delete others' comments." });
+    // }
+
     const deletedComment = await Comment.findByIdAndUpdate(
       commentId,
       { isDeleted: true, deletedAt: Date.now(), updatedAt: Date.now() },

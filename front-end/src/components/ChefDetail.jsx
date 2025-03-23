@@ -9,7 +9,7 @@ import {
   Badge,
   Spinner,
 } from 'react-bootstrap';
-// import { FaRegCircleUser, FaRegCalendarAlt } from 'react-icons/fa';
+import { FaRegCircleUser } from 'react-icons/fa6';
 import { MdEmail, MdFoodBank } from 'react-icons/md';
 import { RiArrowGoBackLine } from 'react-icons/ri';
 import { useCommon } from '../contexts/CommonContext';
@@ -20,19 +20,14 @@ function ChefDetail() {
   const location = useLocation();
   const { Toaster, toast, recipeChefList, setRecipeChefList } = useCommon();
   const navigate = useNavigate();
-  // const prevPath = location.state?.prevPath || `/chef/${id}`;
 
   // Get chef from location state or fetch it
   const [chef, setChef] = useState(location.state?.chef || null);
   const [loading, setLoading] = useState(true);
-  // const [recipeChefList, setRecipeChefList] = useState([]);
 
   useEffect(() => {
     const fetchChefData = async () => {
       try {
-        // setLoading(true);
-
-        // If we don't have chef data from navigation, fetch it
         if (!chef) {
           const chefResponse = await axios.get(
             `http://localhost:3000/users/${id}`
@@ -49,12 +44,9 @@ function ChefDetail() {
         setRecipeChefList(
           recipesResponse.data.filter((recipe) => recipe.status === 'Public')
         );
-
-        // setLoading(false);
       } catch (error) {
         console.error('Error fetching chef data:', error);
         toast.error('Không thể tải thông tin đầu bếp');
-        // setLoading(false);
       }
     };
 
@@ -137,7 +129,7 @@ function ChefDetail() {
                       />
                     ) : (
                       <div className='profile-avatar-fallback'>
-                        {/* <FaRegCircleUser size={80} /> */}
+                        <FaRegCircleUser size={80} />
                       </div>
                     )}
                   </div>
