@@ -80,10 +80,20 @@ function RecipeDetail() {
       console.log('Searching for recipe with slug:', recipeNameSlug);
 
       if (recipeNameSlug) {
-        const foundRecipe = recipeList.find(
-          (recipe) => recipe.slug.toString() === recipeNameSlug.toString()
-        );
+        const foundRecipe =
+          recipeList.find(
+            (recipe) => recipe?.slug.toString() === recipeNameSlug.toString()
+          ) !== undefined
+            ? recipeList.find(
+                (recipe) =>
+                  recipe?.slug.toString() === recipeNameSlug.toString()
+              )
+            : recipes.find(
+                (recipe) =>
+                  recipe?.slug.toString() === recipeNameSlug.toString()
+              );
 
+        console.log('foundRecipe', foundRecipe);
         if (!foundRecipe) {
           toast.error('Không tìm thấy công thức!');
           setIsLoading(false);
@@ -117,11 +127,11 @@ function RecipeDetail() {
   useEffect(() => {
     loadRecipeData();
 
-    return () => {
-      setRecipeViewDetails(null);
-      setAuthorRecipeDetails(null);
-      setIsLoading(true);
-    };
+    // return () => {
+    //   setRecipeViewDetails(null);
+    //   setAuthorRecipeDetails(null);
+    //   setIsLoading(true);
+    // };
   }, [recipeNameSlug, recipes]);
 
   useEffect(() => {
