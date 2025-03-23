@@ -84,7 +84,9 @@ exports.loginUser = async (req, res) => {
       });
     }
     // Tạo token truy cập và token refresh
-    const { role, refreshToken, ...userData } = user.toObject();
+    const { description, createdAt, role, refreshToken, ...userData } =
+      user.toObject();
+    console.log('createdAt', createdAt);
     const accessToken = generateAccessToken(user._id, role);
     const newRefreshToken = generateRefreshToken(user._id);
 
@@ -107,6 +109,8 @@ exports.loginUser = async (req, res) => {
       accessToken,
       userData,
       role,
+      createdAt,
+      description,
     });
   } catch (error) {
     console.error('Error while logging in:', error);

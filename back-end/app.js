@@ -6,30 +6,6 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 //utils
 const AppError = require('./utils/appError');
-
-//import routers
-const recipeRouter = require('./routes/recipeRoutes');
-const userRouter = require('./routes/userRoutes');
-const authenticationRouter = require('./routes/authenticationRoutes');
-const adminRouter = require('./routes/adminRoutes');
-const commentRouter = require('./routes/commentRoutes');
-const savedRecipeRouter = require('./routes/savedRecipeRoutes');
-
-const mongoose = require('mongoose');
-
-const appSchema = new mongoose.Schema(
-  {
-    key: { type: String },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-const App = mongoose.model('app', appSchema);
-
-module.exports = App;
-
 const frontendURL = process.env.FRONTEND_URL;
 
 //các middleware phục vụ cho việc develop
@@ -44,6 +20,15 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
+
+//import routers
+const recipeRouter = require('./routes/recipeRoutes');
+const userRouter = require('./routes/userRoutes');
+const authenticationRouter = require('./routes/authenticationRoutes');
+const adminRouter = require('./routes/adminRoutes');
+const commentRouter = require('./routes/commentRoutes');
+const savedRecipeRouter = require('./routes/savedRecipeRoutes');
+
 //routing handlers
 // --Định tuyến sẵn cho các request từ client với các domain như /recipes, /users
 app.use('/recipes', recipeRouter);

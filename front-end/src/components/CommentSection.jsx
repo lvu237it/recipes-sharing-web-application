@@ -32,7 +32,7 @@ const CommentSection = ({ recipeId }) => {
         setComments(response.data);
       } catch (error) {
         console.error('Error fetching comments:', error);
-        toast.error('Không thể tải bình luận.');
+        // toast.error('Không thể tải bình luận.');
       }
     };
     fetchComments();

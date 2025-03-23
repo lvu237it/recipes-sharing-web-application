@@ -62,28 +62,59 @@ function RecipesList() {
     setUserDataLocal,
     setSavedRecipes,
     accessToken,
+    showCreateRecipeModal,
+    setShowCreateRecipeModal,
+    previewImageRecipeUrl,
+    setPreviewImageRecipeUrl,
+    inputFoodCategory,
+    setInputFoodCategory,
+    inputRecipeName,
+    setInputRecipeName,
+    inputRecipeDescription,
+    setInputRecipeDescription,
+    foodCategoriesListForNewRecipe,
+    setFoodCategoriesListForNewRecipe,
+    inputIngredient,
+    setInputIngredient,
+    ingredientsListForNewRecipe,
+    setIngredientsListForNewRecipe,
+    inputStep,
+    setInputStep,
+    stepsListForNewRecipe,
+    setStepsListForNewRecipe,
+    inputSource,
+    setInputSource,
+    sourcesListForNewRecipe,
+    setSourcesListForNewRecipe,
+    handleClickAddImageIcon,
+    handlePostRecipe,
+    handleCancelCreateRecipe,
+    handleFileChange,
+    imageRecipe,
+    setImageRecipe,
+    uploadImageToCloudinary,
   } = useCommon();
   const location = useLocation();
 
-  // Modal for creating new recipe
-  const [showCreateRecipeModal, setShowCreateRecipeModal] = useState(false);
-  useState(false);
+  // // Modal for creating new recipe
+  // const [showCreateRecipeModal, setShowCreateRecipeModal] = useState(false);
+  // useState(false);
 
   // Details for creating new recipe
-  const [inputFoodCategory, setInputFoodCategory] = useState('');
-  const [foodCategoriesListForNewRecipe, setFoodCategoriesListForNewRecipe] =
-    useState([]);
-  const [inputRecipeName, setInputRecipeName] = useState('');
-  const [inputRecipeDescription, setInputRecipeDescription] = useState('');
-  const [imageRecipe, setImageRecipe] = useState(null);
-  const [previewImageRecipeUrl, setPreviewImageRecipeUrl] = useState(null);
-  const [inputIngredient, setInputIngredient] = useState('');
-  const [ingredientsListForNewRecipe, setIngredientsListForNewRecipe] =
-    useState([]);
-  const [inputStep, setInputStep] = useState('');
-  const [stepsListForNewRecipe, setStepsListForNewRecipe] = useState([]);
-  const [inputSource, setInputSource] = useState('');
-  const [sourcesListForNewRecipe, setSourcesListForNewRecipe] = useState([]);
+  // const [inputFoodCategory, setInputFoodCategory] = useState('');
+  // const [foodCategoriesListForNewRecipe, setFoodCategoriesListForNewRecipe] =
+  //   useState([]);
+  // const [inputRecipeName, setInputRecipeName] = useState('');
+  // const [inputRecipeDescription, setInputRecipeDescription] = useState('');
+  // const [imageRecipe, setImageRecipe] = useState(null);
+  // const [previewImageRecipeUrl, setPreviewImageRecipeUrl] = useState(null);
+  // const [inputIngredient, setInputIngredient] = useState('');
+  // const [ingredientsListForNewRecipe, setIngredientsListForNewRecipe] =
+  //   useState([]);
+  // const [inputStep, setInputStep] = useState('');
+  // const [stepsListForNewRecipe, setStepsListForNewRecipe] = useState([]);
+  // const [inputSource, setInputSource] = useState('');
+  // const [sourcesListForNewRecipe, setSourcesListForNewRecipe] = useState([]);
 
   const [openUserOptionsModal, setOpenUserOptionsModal] = useState(false);
   const modalUserOptionsRef = useRef(null);
@@ -140,157 +171,129 @@ function RecipesList() {
     setFilteredRecipes(filterRecipesResultFinal);
   }, [filterRecipesResultFinal, setFilteredRecipes]);
 
-  const handleCancelCreateRecipe = () => {
-    setShowCreateRecipeModal(false);
-    setPreviewImageRecipeUrl(null);
-    setInputFoodCategory('');
-    setInputRecipeName('');
-    setInputRecipeDescription('');
-    setFoodCategoriesListForNewRecipe([]);
-    setInputIngredient('');
-    setIngredientsListForNewRecipe([]);
-    setInputStep('');
-    setStepsListForNewRecipe([]);
-    setInputSource('');
-    setSourcesListForNewRecipe([]);
-  };
-  useEffect(() => {
-    if (!showCreateRecipeModal) {
-      setPreviewImageRecipeUrl(null);
-      setInputFoodCategory('');
-      setFoodCategoriesListForNewRecipe([]);
-      setInputIngredient('');
-      setIngredientsListForNewRecipe([]);
-      setInputStep('');
-      setStepsListForNewRecipe([]);
-      setInputSource('');
-      setSourcesListForNewRecipe([]);
-    }
-  }, [showCreateRecipeModal]);
+  // const handleFileChange = (e) => {
+  //   const file = e.target.files[0];
+  //   setImageRecipe(file);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setImageRecipe(file);
+  //   if (file) {
+  //     // Tạo URL blob cho ảnh để xem trước
+  //     const previewBlobImage = URL.createObjectURL(file);
+  //     setPreviewImageRecipeUrl(previewBlobImage); // Cập nhật URL blob
+  //   }
+  // };
 
-    if (file) {
-      // Tạo URL blob cho ảnh để xem trước
-      const previewBlobImage = URL.createObjectURL(file);
-      setPreviewImageRecipeUrl(previewBlobImage); // Cập nhật URL blob
-    }
-  };
-
-  const handleClickAddImageIcon = () => {
-    const fileInput = document.getElementById('bi-attachment-add');
-    fileInput.click();
-  };
+  // const handleClickAddImageIcon = () => {
+  //   const fileInput = document.getElementById('bi-attachment-add');
+  //   fileInput.click();
+  // };
 
   // Hàm upload ảnh lên Cloudinary
-  const uploadImageToCloudinary = async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append(
-      'upload_preset',
-      'sdn302-recipes-sharing-web-single-image-for-recipe'
-    );
+  // const uploadImageToCloudinary = async (file) => {
+  //   const formData = new FormData();
+  //   formData.append('file', file);
+  //   formData.append(
+  //     'upload_preset',
+  //     'sdn302-recipes-sharing-web-single-image-for-recipe'
+  //   );
 
-    try {
-      const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${
-          import.meta.env.VITE_CLOUDINARY_NAME
-        }/image/upload`,
-        formData
-      );
-      console.log('VITE_CLOUDINARY_NAME', import.meta.env.VITE_CLOUDINARY_NAME);
-      console.log('response', response);
-      console.log('response.data', response.data);
-      console.log('response.data.secureurl', response.data.secure_url);
-      if (response.status === 200) {
-        console.log('oke upload thành công');
-        return response.data.secure_url; // Trả về URL ảnh đã upload
-      }
-    } catch (error) {
-      console.error('Error uploading to Cloudinary:', error);
-      throw new Error('Upload to Cloudinary failed');
-    }
-  };
+  //   try {
+  //     const response = await axios.post(
+  //       `https://api.cloudinary.com/v1_1/${
+  //         import.meta.env.VITE_CLOUDINARY_NAME
+  //       }/image/upload`,
+  //       formData
+  //     );
+  //     console.log('VITE_CLOUDINARY_NAME', import.meta.env.VITE_CLOUDINARY_NAME);
+  //     console.log('response', response);
+  //     console.log('response.data', response.data);
+  //     console.log('response.data.secureurl', response.data.secure_url);
+  //     if (response.status === 200) {
+  //       console.log('oke upload thành công');
+  //       return response.data.secure_url; // Trả về URL ảnh đã upload
+  //     }
+  //   } catch (error) {
+  //     console.error('Error uploading to Cloudinary:', error);
+  //     throw new Error('Upload to Cloudinary failed');
+  //   }
+  // };
 
-  const handlePostRecipe = async () => {
-    if (
-      foodCategoriesListForNewRecipe.length === 0 ||
-      inputRecipeName.trim() === '' ||
-      inputRecipeDescription.trim() === '' ||
-      ingredientsListForNewRecipe.length === 0 ||
-      stepsListForNewRecipe.length === 0 ||
-      imageRecipe === null
-    ) {
-      toast.warning(
-        <>
-          <div className=''>Hãy bổ sung đầy đủ các thông tin cần thiết!</div>
-        </>
-      );
-      return;
-    }
+  // const handlePostRecipe = async () => {
+  //   if (
+  //     foodCategoriesListForNewRecipe.length === 0 ||
+  //     inputRecipeName.trim() === '' ||
+  //     inputRecipeDescription.trim() === '' ||
+  //     ingredientsListForNewRecipe.length === 0 ||
+  //     stepsListForNewRecipe.length === 0 ||
+  //     imageRecipe === null
+  //   ) {
+  //     toast.warning(
+  //       <>
+  //         <div className=''>Hãy bổ sung đầy đủ các thông tin cần thiết!</div>
+  //       </>
+  //     );
+  //     return;
+  //   }
 
-    const formData = new FormData();
-    formData.append(
-      'foodCategories',
-      JSON.stringify(foodCategoriesListForNewRecipe)
-    );
-    formData.append('title', inputRecipeName);
-    formData.append('description', inputRecipeDescription);
-    formData.append('ingredients', JSON.stringify(ingredientsListForNewRecipe));
-    formData.append('steps', JSON.stringify(stepsListForNewRecipe));
-    formData.append('owner', userDataLocal._id);
-    formData.append('sources', JSON.stringify(sourcesListForNewRecipe));
+  //   const formData = new FormData();
+  //   formData.append(
+  //     'foodCategories',
+  //     JSON.stringify(foodCategoriesListForNewRecipe)
+  //   );
+  //   formData.append('title', inputRecipeName);
+  //   formData.append('description', inputRecipeDescription);
+  //   formData.append('ingredients', JSON.stringify(ingredientsListForNewRecipe));
+  //   formData.append('steps', JSON.stringify(stepsListForNewRecipe));
+  //   formData.append('owner', userDataLocal._id);
+  //   formData.append('sources', JSON.stringify(sourcesListForNewRecipe));
 
-    try {
-      setShowCreateRecipeModal(false);
+  //   try {
+  //     setShowCreateRecipeModal(false);
 
-      const promise = () =>
-        new Promise((resolve) =>
-          setTimeout(() => resolve({ name: 'my-toast-creating-recipe' }), 2000)
-        );
+  //     const promise = () =>
+  //       new Promise((resolve) =>
+  //         setTimeout(() => resolve({ name: 'my-toast-creating-recipe' }), 2000)
+  //       );
 
-      // Upload ảnh trực tiếp lên Cloudinary
-      const uploadResponse = await uploadImageToCloudinary(imageRecipe);
+  //     // Upload ảnh trực tiếp lên Cloudinary
+  //     const uploadResponse = await uploadImageToCloudinary(imageRecipe);
 
-      if (!uploadResponse) {
-        console.error('Error uploading image to Cloudinary:', error);
-        return;
-      }
-      console.log('uploadresponse', uploadResponse);
+  //     if (!uploadResponse) {
+  //       console.error('Error uploading image to Cloudinary:', error);
+  //       return;
+  //     }
+  //     console.log('uploadresponse', uploadResponse);
 
-      formData.append('imageUrl', uploadResponse); // Đính kèm URL ảnh đã upload
+  //     formData.append('imageUrl', uploadResponse); // Đính kèm URL ảnh đã upload
 
-      // Tiến hành gửi yêu cầu POST đến backend với ảnh đã upload
-      const response = await axios.post(
-        'http://localhost:3000/recipes/create-new-recipe',
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+  //     // Tiến hành gửi yêu cầu POST đến backend với ảnh đã upload
+  //     const response = await axios.post(
+  //       'http://localhost:3000/recipes/create-new-recipe',
+  //       formData,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${accessToken}`,
+  //         },
+  //       }
+  //     );
 
-      toast.promise(promise, {
-        loading: 'Vui lòng chờ quá trình tải lên hoàn tất...',
-        success: () => {
-          if (response.status === 200) {
-            setRecipes((preRecipes) => [response.data.data, ...preRecipes]);
-            console.log('Create recipe post successfully!');
-          } else {
-            console.log('Create recipe post failed!');
-          }
+  //     toast.promise(promise, {
+  //       loading: 'Vui lòng chờ quá trình tải lên hoàn tất...',
+  //       success: () => {
+  //         if (response.status === 200) {
+  //           setRecipes((preRecipes) => [response.data.data, ...preRecipes]);
+  //           console.log('Create recipe post successfully!');
+  //         } else {
+  //           console.log('Create recipe post failed!');
+  //         }
 
-          return `Tạo công thức mới thành công!`;
-        },
-        error: 'Đã có lỗi xảy ra trong quá trình tải lên.',
-      });
-    } catch (error) {
-      console.error('Error uploading image to Cloudinary:', error);
-    }
-  };
+  //         return `Tạo công thức mới thành công!`;
+  //       },
+  //       error: 'Đã có lỗi xảy ra trong quá trình tải lên.',
+  //     });
+  //   } catch (error) {
+  //     console.error('Error uploading image to Cloudinary:', error);
+  //   }
+  // };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -309,11 +312,7 @@ function RecipesList() {
   }, []);
 
   const handleClickProfile = () => {
-    if (userDataLocal.role === 'admin') {
-      navigate('/admin/recipes');
-    } else if (userDataLocal.role === 'user') {
-      navigate('/profile');
-    }
+    navigate('/user-profile');
   };
 
   return (
@@ -514,6 +513,30 @@ function RecipesList() {
                   </div>
                 ) : (
                   <>
+                    {/* Chuyển hướng tới trang quản lý nếu là quản trị viên */}
+                    {userDataLocal.role === 'admin' && (
+                      <div
+                        className='p-2 options-modal-detail'
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '120px 1fr',
+                        }}
+                        onClick={() => navigate('/admin/recipes')}
+                      >
+                        <div
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 500,
+                          }}
+                        >
+                          {/* {userDataLocal?.username} */}
+                          Trang quản trị
+                        </div>
+                        <FaChevronRight style={{ margin: 'auto' }} />
+                      </div>
+                    )}
+
+                    {/* Chuyển hướng tới trang profile */}
                     <div
                       className='p-2 options-modal-detail'
                       style={{

@@ -57,7 +57,17 @@ const SlidingAuthForm = () => {
       // Trích xuất dữ liệu cần thiết từ userData
       const { _id, username, email } = response.data.userData;
       const role = response.data.role;
-      const filteredUserData = { _id, username, email, role };
+      const createdAt = response.data.createdAt;
+      const description = response.data.description;
+
+      const filteredUserData = {
+        _id,
+        username,
+        email,
+        role,
+        createdAt,
+        description,
+      };
 
       // Lưu userData vào localStorage
       localStorage.setItem('userData', JSON.stringify(filteredUserData));

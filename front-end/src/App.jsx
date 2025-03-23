@@ -9,6 +9,7 @@ import Login from './components/Login';
 import SavedRecipes from './components/SavedRecipes';
 import ChefsCommunity from './components/ChefsCommunity';
 import ChefDetail from './components/ChefDetail';
+import UserProfile from './components/UserProfile';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           element={<RecipeDetail />}
         />
         <Route path='/admin/recipes' element={<AdminRecipes />} />
+        <Route path='/user-profile' element={<UserProfile />} />
         <Route
           path='/admin/recipes/:recipeId'
           element={<AdminRecipeDetail />}

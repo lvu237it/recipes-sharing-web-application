@@ -168,11 +168,15 @@ function ChefDetail() {
                     )}
                   </div>
 
-                  <p
-                    dangerouslySetInnerHTML={{
-                      __html: decodeHtml(chef?.description),
-                    }}
-                  />
+                  {chef?.description === undefined ? (
+                    'Không có mô tả'
+                  ) : (
+                    <p
+                      dangerouslySetInnerHTML={{
+                        __html: decodeHtml(chef?.description),
+                      }}
+                    />
+                  )}
                 </Col>
               </Row>
             </Card.Body>

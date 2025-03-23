@@ -12,7 +12,11 @@ function ChefCard({ chef }) {
   };
 
   return (
-    <Card className='chef-card' onClick={handleCardClick}>
+    <Card
+      className='chef-card'
+      onClick={handleCardClick}
+      style={{ height: 350 }}
+    >
       <Card.Body className='chef-card-body'>
         <div className='chef-avatar'>
           {chef.avatar ? (

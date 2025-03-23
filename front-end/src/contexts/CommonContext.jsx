@@ -73,6 +73,46 @@ export const Common = ({ children }) => {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [communityChefsList, setCommunityChefsList] = useState([]);
   const [recipeChefList, setRecipeChefList] = useState([]);
+  const [recipeListByUserId, setRecipeListByUserId] = useState([]);
+  // Modal for creating new recipe
+  const [showCreateRecipeModal, setShowCreateRecipeModal] = useState(false);
+  useState(false);
+  const [previewImageRecipeUrl, setPreviewImageRecipeUrl] = useState(null);
+  const [inputFoodCategory, setInputFoodCategory] = useState('');
+  const [inputRecipeName, setInputRecipeName] = useState('');
+  const [inputRecipeDescription, setInputRecipeDescription] = useState('');
+  const [foodCategoriesListForNewRecipe, setFoodCategoriesListForNewRecipe] =
+    useState([]);
+  const [inputIngredient, setInputIngredient] = useState('');
+  const [ingredientsListForNewRecipe, setIngredientsListForNewRecipe] =
+    useState([]);
+  const [inputStep, setInputStep] = useState('');
+  const [stepsListForNewRecipe, setStepsListForNewRecipe] = useState([]);
+  const [inputSource, setInputSource] = useState('');
+  const [sourcesListForNewRecipe, setSourcesListForNewRecipe] = useState([]);
+  const [imageRecipe, setImageRecipe] = useState(null);
+
+  // Get recipes list by userId
+  const getRecipesListByUserId = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/users/${userDataLocal?._id}/recipes`
+      );
+
+      if (response) {
+        setRecipeListByUserId(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recipes by userid:', error);
+      toast.error('Có lỗi xảy ra khi tải dữ liệu! Vui lòng thử lại.');
+    }
+  };
+
+  useEffect(() => {
+    if (userDataLocal) {
+      getRecipesListByUserId();
+    }
+  }, [userDataLocal]);
 
   // Get recipes with all possible filters
   const getRecipes = async (page = 0) => {
@@ -303,6 +343,248 @@ export const Common = ({ children }) => {
     }
   };
 
+  // const handlePostRecipe = async () => {
+  //   if (
+  //     foodCategoriesListForNewRecipe.length === 0 ||
+  //     inputRecipeName.trim() === '' ||
+  //     inputRecipeDescription.trim() === '' ||
+  //     ingredientsListForNewRecipe.length === 0 ||
+  //     stepsListForNewRecipe.length === 0 ||
+  //     imageRecipe === null
+  //   ) {
+  //     toast.warning(
+  //       <>
+  //         <div className=''>Hãy bổ sung đầy đủ các thông tin cần thiết!</div>
+  //       </>
+  //     );
+  //     return;
+  //   }
+
+  //   const formData = new FormData();
+  //   formData.append(
+  //     'foodCategories',
+  //     JSON.stringify(foodCategoriesListForNewRecipe)
+  //   );
+  //   formData.append('title', inputRecipeName);
+  //   formData.append('description', inputRecipeDescription);
+  //   formData.append('ingredients', JSON.stringify(ingredientsListForNewRecipe));
+  //   formData.append('steps', JSON.stringify(stepsListForNewRecipe));
+  //   formData.append('owner', userDataLocal._id);
+  //   formData.append('sources', JSON.stringify(sourcesListForNewRecipe));
+
+  //   console.log('formdata', formData);
+
+  //   try {
+  //     setShowCreateRecipeModal(false);
+
+  //     const promise = () =>
+  //       new Promise((resolve) =>
+  //         setTimeout(() => resolve({ name: 'my-toast-creating-recipe' }), 2000)
+  //       );
+
+  //     // Upload ảnh trực tiếp lên Cloudinary
+  //     const uploadResponse = await uploadImageToCloudinary(imageRecipe);
+
+  //     console.log('uploadresponse', uploadResponse);
+  //     console.log(uploadResponse === null);
+  //     if (uploadResponse !== null) {
+  //       console.log('tiến hành post');
+  //       formData.append('imageUrl', uploadResponse); // Đính kèm URL ảnh đã upload
+
+  //       // Tiến hành gửi yêu cầu POST đến backend với ảnh đã upload
+  //       const response = await axios.post(
+  //         'http://localhost:3000/recipes/create-new-recipe',
+  //         formData,
+  //         {
+  //           headers: {
+  //             Authorization: `Bearer ${accessToken}`,
+  //           },
+  //         }
+  //       );
+
+  //       toast.promise(promise, {
+  //         loading: 'Vui lòng chờ quá trình tải lên hoàn tất...',
+  //         success: () => {
+  //           if (response.status === 200) {
+  //             setRecipes((preRecipes) => [response.data.data, ...preRecipes]);
+  //             console.log('Create recipe post successfully!');
+  //           } else {
+  //             console.log('Create recipe post failed!');
+  //           }
+
+  //           return `Tạo công thức mới thành công!`;
+  //         },
+  //         error: 'Đã có lỗi xảy ra trong quá trình tải lên.',
+  //       });
+  //     }
+
+  //     // console.error('Error uploading image to Cloudinary:', error);
+  //     // return;
+  //   } catch (error) {
+  //     console.error('Error uploading image to Cloudinary:', error);
+  //   }
+  // };
+
+  const handlePostRecipe = async () => {
+    if (
+      foodCategoriesListForNewRecipe.length === 0 ||
+      inputRecipeName.trim() === '' ||
+      inputRecipeDescription.trim() === '' ||
+      ingredientsListForNewRecipe.length === 0 ||
+      stepsListForNewRecipe.length === 0 ||
+      imageRecipe === null
+    ) {
+      toast.warning(
+        <>
+          <div className=''>Hãy bổ sung đầy đủ các thông tin cần thiết!</div>
+        </>
+      );
+      return;
+    }
+
+    const formData = new FormData();
+    // Convert arrays/objects to JSON strings before appending
+    formData.append(
+      'foodCategories',
+      JSON.stringify(foodCategoriesListForNewRecipe)
+    );
+    formData.append('title', inputRecipeName);
+    formData.append('description', inputRecipeDescription);
+    formData.append('ingredients', JSON.stringify(ingredientsListForNewRecipe));
+    formData.append('steps', JSON.stringify(stepsListForNewRecipe));
+    formData.append('owner', userDataLocal._id);
+    formData.append('sources', JSON.stringify(sourcesListForNewRecipe));
+
+    console.log('formdata entries:');
+    // Debug: Log all form data entries to verify data is being added correctly
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ': ' + pair[1]);
+    }
+
+    try {
+      setShowCreateRecipeModal(false);
+
+      // Upload image to Cloudinary
+      const uploadResponse = await uploadImageToCloudinary(imageRecipe);
+      console.log('uploadresponse', uploadResponse);
+
+      if (uploadResponse !== null) {
+        console.log('tiến hành post');
+        formData.append('imageUrl', uploadResponse); // Add the uploaded image URL
+
+        // Log again after adding imageUrl
+        console.log('formdata after adding imageUrl:');
+        for (let pair of formData.entries()) {
+          console.log(pair[0] + ': ' + pair[1]);
+        }
+
+        // Send POST request to backend
+        const response = await axios.post(
+          'http://localhost:3000/recipes/create-new-recipe',
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        // Handle response
+        if (response.status === 200) {
+          // Không trực tiếp setRecipes mới vì nó còn đang chờ duyệt
+          // setRecipes((preRecipes) => [response.data.data, ...preRecipes]);
+          toast.success(
+            'Tạo công thức mới thành công! Công thức của bạn đang chờ được duyệt.'
+          );
+          console.log('Create recipe post successfully!');
+        } else {
+          toast.error('Đã có lỗi xảy ra trong quá trình tải lên.');
+          console.log('Create recipe post failed!');
+        }
+      } else {
+        toast.error('Không thể tải ảnh lên Cloudinary.');
+      }
+    } catch (error) {
+      console.error('Error creating recipe:', error);
+      toast.error('Đã có lỗi xảy ra trong quá trình tải lên.');
+    }
+  };
+
+  const handleCancelCreateRecipe = () => {
+    setShowCreateRecipeModal(false);
+    setPreviewImageRecipeUrl(null);
+    setInputFoodCategory('');
+    setInputRecipeName('');
+    setInputRecipeDescription('');
+    setFoodCategoriesListForNewRecipe([]);
+    setInputIngredient('');
+    setIngredientsListForNewRecipe([]);
+    setInputStep('');
+    setStepsListForNewRecipe([]);
+    setInputSource('');
+    setSourcesListForNewRecipe([]);
+  };
+
+  const handleClickAddImageIcon = () => {
+    const fileInput = document.getElementById('bi-attachment-add');
+    fileInput.click();
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setImageRecipe(file);
+
+    if (file) {
+      // Tạo URL blob cho ảnh để xem trước
+      const previewBlobImage = URL.createObjectURL(file);
+      setPreviewImageRecipeUrl(previewBlobImage); // Cập nhật URL blob
+    }
+  };
+
+  const uploadImageToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append(
+      'upload_preset',
+      'sdn302-recipes-sharing-web-single-image-for-recipe'
+    );
+
+    try {
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${
+          import.meta.env.VITE_CLOUDINARY_NAME
+        }/image/upload`,
+        formData
+      );
+      console.log('VITE_CLOUDINARY_NAME', import.meta.env.VITE_CLOUDINARY_NAME);
+      console.log('response', response);
+      console.log('response.data', response.data);
+      console.log('response.data.secureurl', response.data.secure_url);
+      if (response.status === 200) {
+        console.log('oke upload thành công');
+        return response.data.secure_url; // Trả về URL ảnh đã upload
+      }
+    } catch (error) {
+      console.error('Error uploading to Cloudinary:', error);
+      throw new Error('Upload to Cloudinary failed');
+    }
+  };
+
+  useEffect(() => {
+    if (!showCreateRecipeModal) {
+      setPreviewImageRecipeUrl(null);
+      setInputFoodCategory('');
+      setFoodCategoriesListForNewRecipe([]);
+      setInputIngredient('');
+      setIngredientsListForNewRecipe([]);
+      setInputStep('');
+      setStepsListForNewRecipe([]);
+      setInputSource('');
+      setSourcesListForNewRecipe([]);
+    }
+  }, [showCreateRecipeModal]);
+
   return (
     <CommonContext.Provider
       value={{
@@ -342,6 +624,39 @@ export const Common = ({ children }) => {
         setCommunityChefsList,
         recipeChefList,
         setRecipeChefList,
+        recipeListByUserId,
+        setRecipeListByUserId,
+        showCreateRecipeModal,
+        setShowCreateRecipeModal,
+        handlePostRecipe,
+        handleCancelCreateRecipe,
+        previewImageRecipeUrl,
+        setPreviewImageRecipeUrl,
+        inputFoodCategory,
+        setInputFoodCategory,
+        inputRecipeName,
+        setInputRecipeName,
+        inputRecipeDescription,
+        setInputRecipeDescription,
+        foodCategoriesListForNewRecipe,
+        setFoodCategoriesListForNewRecipe,
+        inputIngredient,
+        setInputIngredient,
+        ingredientsListForNewRecipe,
+        setIngredientsListForNewRecipe,
+        inputStep,
+        setInputStep,
+        stepsListForNewRecipe,
+        setStepsListForNewRecipe,
+        inputSource,
+        setInputSource,
+        sourcesListForNewRecipe,
+        setSourcesListForNewRecipe,
+        handleClickAddImageIcon,
+        handleFileChange,
+        imageRecipe,
+        setImageRecipe,
+        uploadImageToCloudinary,
       }}
     >
       {children}

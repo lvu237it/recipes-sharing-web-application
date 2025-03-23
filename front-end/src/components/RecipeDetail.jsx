@@ -36,6 +36,7 @@ function RecipeDetail() {
     accessToken,
     recipeChefList,
     setRecipeChefList,
+    recipeListByUserId,
   } = useCommon();
 
   const location = useLocation();
@@ -76,50 +77,45 @@ function RecipeDetail() {
   const loadRecipeData = async () => {
     setIsLoading(true);
     try {
-      console.log('Recipes Array:', recipes); // Kiểm tra danh sách recipes có dữ liệu không
+      console.log('Recipes Array:', recipes);
       console.log('Searching for recipe with slug:', recipeNameSlug);
 
-      if (recipeNameSlug) {
-        const foundRecipe =
-          recipeList.find(
-            (recipe) => recipe?.slug.toString() === recipeNameSlug.toString()
-          ) !== undefined
-            ? recipeList.find(
-                (recipe) =>
-                  recipe?.slug.toString() === recipeNameSlug.toString()
-              )
-            : recipes.find(
-                (recipe) =>
-                  recipe?.slug.toString() === recipeNameSlug.toString()
-              );
-
-        console.log('foundRecipe', foundRecipe);
-        if (!foundRecipe) {
-          toast.error('Không tìm thấy công thức!');
-          setIsLoading(false);
-          return;
-        }
-
-        setRecipeViewDetails(foundRecipe);
-
-        // Fetch author details nếu có foundRecipe
-        const response = await axios.get(
-          `http://localhost:3000/recipes/${foundRecipe._id}/populate`
-        );
-        const authorData = response.data.data[0]?.owner;
-
-        if (authorData && authorData.username) {
-          setAuthorRecipeDetails(authorData);
-          setIsLoading(false);
-        } else {
-          throw new Error('Không thể tải thông tin tác giả');
-        }
-      } else {
+      if (!recipeNameSlug) {
         console.error('Không có dữ liệu recipes hoặc slug');
         setIsLoading(false);
+        return;
+      }
+
+      // Tìm recipe theo slug trong các danh sách
+      const allRecipes = [...recipeList, ...recipes, ...recipeListByUserId];
+      const foundRecipe = allRecipes.find(
+        (recipe) => recipe?.slug?.toString() === recipeNameSlug.toString()
+      );
+
+      console.log('foundRecipe', foundRecipe);
+
+      if (!foundRecipe) {
+        toast.error('Không tìm thấy công thức!');
+        setIsLoading(false);
+        return;
+      }
+
+      setRecipeViewDetails(foundRecipe);
+
+      // Fetch author details nếu có foundRecipe
+      const response = await axios.get(
+        `http://localhost:3000/recipes/${foundRecipe._id}/populate`
+      );
+      const authorData = response.data.data[0]?.owner;
+
+      if (authorData?.username) {
+        setAuthorRecipeDetails(authorData);
+      } else {
+        throw new Error('Không thể tải thông tin tác giả');
       }
     } catch (error) {
       console.error('Lỗi khi tải dữ liệu công thức:', error);
+    } finally {
       setIsLoading(false);
     }
   };

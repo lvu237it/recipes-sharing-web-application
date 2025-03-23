@@ -219,6 +219,7 @@ exports.findAllRecipesByTitle = async (req, res) => {
 // Create new recipe
 exports.createNewRecipe = async (req, res) => {
   try {
+    console.log('Received request body:', req.body);
     const {
       imageUrl,
       foodCategories,
@@ -230,7 +231,17 @@ exports.createNewRecipe = async (req, res) => {
       sources,
     } = req.body;
 
+    console.log('imageUrl', imageUrl);
+    console.log('foodCategories', foodCategories);
+    console.log('title', title);
+    console.log('description', description);
+    console.log('ingredients', ingredients);
+    console.log('steps', steps);
+    console.log('owner', owner);
+    console.log('sources', sources);
+
     const ownerId = req.user._id;
+    console.log('ownerId', ownerId);
 
     if (req.user.role !== 'user' && req.user.role !== 'admin') {
       return res.status(403).json({
@@ -239,28 +250,31 @@ exports.createNewRecipe = async (req, res) => {
       });
     }
 
-    // Kiểm tra và parse nếu là chuỗi JSON
+    // Parse JSON strings safely
     const parseIfString = (value) => {
+      if (!value) return null;
+
       try {
         return typeof value === 'string' ? JSON.parse(value) : value;
       } catch (error) {
-        return value; // Nếu không phải chuỗi JSON, trả về giá trị nguyên vẹn
+        console.log('Error parsing:', value, error);
+        return value; // Return original value if parsing fails
       }
     };
 
-    // Lưu recipe vào cơ sở dữ liệu
+    // Create recipe in database
     const recentRecipeCreated = await Recipe.create({
-      imageUrl, // Đã có URL ảnh từ frontend
+      imageUrl,
       foodCategories: parseIfString(foodCategories),
       title,
       description,
       ingredients: parseIfString(ingredients),
       steps: parseIfString(steps),
-      owner: parseIfString(ownerId) || parseIfString(owner),
+      owner: ownerId || parseIfString(owner),
       sources: parseIfString(sources),
     });
 
-    // Trả về kết quả hiển thị dưới dạng json
+    // Return success response
     return res.status(200).json({
       message: 'success',
       status: 200,

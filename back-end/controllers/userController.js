@@ -1,19 +1,6 @@
 const User = require('../models/userModel');
 const mongoose = require('mongoose');
 const Recipe = require('../models/recipeModel');
-//Code demo
-// exports.createAnUser = async (req, res) => {
-//   try {
-//     const { username, role } = req.body;
-//     await User.create({ username, role });
-
-//     res.json({
-//       status: 'success',
-//     });
-//   } catch (error) {
-//     console.log('error while creating an user');
-//   }
-// };
 
 exports.getAllUser = async (req, res) => {
   try {
@@ -120,7 +107,9 @@ exports.getUserById = async (req, res) => {
 exports.findAllRecipesByUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const recipes = await Recipe.find({ owner: userId });
+    const recipes = await Recipe.find({ owner: userId, isDeleted: false }).sort(
+      { createdAt: -1 } // Sắp xếp theo createdAt giảm dần (mới nhất trước)
+    );
 
     res.status(200).json(recipes);
   } catch (error) {
