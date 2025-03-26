@@ -6,6 +6,8 @@ import RecipeDetail from './components/RecipeDetail';
 import AdminRecipes from './components/AdminRecipes';
 import AdminRecipeDetail from './components/AdminRecipeDetails';
 import Login from './components/Login';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import SavedRecipes from './components/SavedRecipes';
 import ChefsCommunity from './components/ChefsCommunity';
 import ChefDetail from './components/ChefDetail';
@@ -20,6 +22,8 @@ function App() {
         <Route path='/community-chef' element={<ChefsCommunity />} />
         <Route path='/chef/:id' element={<ChefDetail />} />
         <Route path='/login' element={<Login />} />
+        <Route path='/forgot' element={<ForgotPassword />} />
+        <Route path='/reset/:token' element={<ResetPassword />} />
         <Route
           path='/recipe-details/:recipeNameSlug'
           element={<RecipeDetail />}

@@ -224,12 +224,6 @@ exports.userDeleteComment = async (req, res) => {
       return res.status(404).json({ error: 'Comment does not exist.' });
     }
 
-    // if (!(await isCommentMadeByUser(commentId, req.user._id))) {
-    //   return res
-    //     .status(403)
-    //     .json({ error: "Unauthorised: Cannot delete others' comments." });
-    // }
-
     const deletedComment = await Comment.findByIdAndUpdate(
       commentId,
       { isDeleted: true, deletedAt: Date.now(), updatedAt: Date.now() },

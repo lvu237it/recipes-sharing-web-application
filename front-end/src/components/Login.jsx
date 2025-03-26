@@ -102,6 +102,7 @@ const SlidingAuthForm = () => {
             }}
           />
         </button>
+
         <div className='auth-wrapper'>
           <div className={`container ${isLogin ? '' : 'right-panel-active'}`}>
             <div className='form-container sign-up-container'>
@@ -179,6 +180,7 @@ const SlidingAuthForm = () => {
                       placeholder='Mật khẩu'
                     />
                   </Form.Item>
+
                   <Form.Item>
                     <Button
                       type='primary'
@@ -187,10 +189,19 @@ const SlidingAuthForm = () => {
                     >
                       Đăng nhập
                     </Button>
+                    <Button
+                      style={{ marginTop: 10 }}
+                      type='primary'
+                      className='form-button'
+                      onClick={() => navigate('/forgot')}
+                    >
+                      Quên mật khẩu?
+                    </Button>
                   </Form.Item>
                 </Form>
               </div>
             </div>
+
             <div className='overlay-container'>
               <div className='overlay'>
                 <div className='overlay-panel overlay-left'>

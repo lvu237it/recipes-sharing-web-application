@@ -2,6 +2,7 @@
 const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const sendMail = require('../utils/sendMail');
 const {
   generateAccessToken,
@@ -162,7 +163,7 @@ exports.logoutUser = async (req, res) => {
 };
 
 exports.forgotPassword = async (req, res) => {
-  const { email } = req.query;
+  const { email } = req.body;
   if (!email) throw new Error('Missing email');
 
   const user = await User.findOne({ email });
@@ -174,50 +175,50 @@ exports.forgotPassword = async (req, res) => {
   const html = `<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Password Reset Request</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        .button {
-            display: inline-block;
-            background-color: #007bff;
-            color: #ffffff;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 16px;
-            margin-top: 20px;
-        }
-        .footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #666;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Reset Request</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          background-color: #f4f4f4;
+          margin: 0;
+          padding: 0;
+      }
+      .container {
+          max-width: 600px;
+          margin: 20px auto;
+          background: #ffffff;
+          padding: 20px;
+          border-radius: 10px;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          text-align: center;
+      }
+      .button {
+          display: inline-block;
+          background-color: #007bff;
+          color: #ffffff;
+          padding: 10px 20px;
+          text-decoration: none;
+          border-radius: 5px;
+          font-size: 16px;
+          margin-top: 20px;
+      }
+      .footer {
+          margin-top: 20px;
+          font-size: 12px;
+          color: #666;
+      }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Password Reset Request</h2>
-        <p>You requested a password reset. Please click the button below to reset your password.</p>
-        <p>This link will expire in 15 minutes.</p>
-        <a href="${process.env.URL_SERVER}/authentication/resetpass/${resetToken}" class="button">Reset Password</a>
-        <p class="footer">If you did not request this, please ignore this email.</p>
-    </div>
+  <div class="container">
+      <h2>Password Reset Request</h2>
+      <p>You requested a password reset. Please click the button below to reset your password.</p>
+      <p>This link will expire in 15 minutes.</p>
+      <a href="${process.env.FRONTEND_URL}/reset/${resetToken}" class="button">Reset Password</a>
+      <p class="footer">If you did not request this, please ignore this email.</p>
+  </div>
 </body>
 </html>`;
 
@@ -234,6 +235,7 @@ exports.resetPassword = async (req, res) => {
   if (!password || !token) throw new Error('Missing inputs');
 
   const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
   const user = await User.findOne({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
@@ -241,7 +243,11 @@ exports.resetPassword = async (req, res) => {
 
   if (!user) throw new Error('Invalid reset token');
 
-  user.password = password;
+  // Băm mật khẩu mới trước khi lưu
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  user.password = hashedPassword;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   user.passwordChangedAt = Date.now();
