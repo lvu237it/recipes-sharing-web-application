@@ -144,21 +144,21 @@ function UserProfile() {
     const newErrors = {};
 
     if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
+      newErrors.username = 'Bạn chưa nhập tên/biệt danh';
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'Bạn chưa nhập email';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'Email không hợp lệ';
     }
 
     if (formData.password && formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = 'Mật khẩu phải chứa ít nhất 6 kí tự';
     }
 
     if (formData.password && formData.password !== passwordConfirm) {
-      newErrors.passwordConfirm = 'Passwords do not match';
+      newErrors.passwordConfirm = 'Mật khẩu không đúng';
     }
 
     setErrors(newErrors);
@@ -806,7 +806,7 @@ function UserProfile() {
                           )}
                         </div>
 
-                        {isEditing && (
+                        {/* {isEditing && (
                           <div className='mb-3'>
                             <Form.Label
                               htmlFor='avatar'
@@ -823,7 +823,7 @@ function UserProfile() {
                               onChange={handleAvatarChange}
                             />
                           </div>
-                        )}
+                        )} */}
 
                         <div>
                           <h5>{userDataLocal.username}</h5>

@@ -4,6 +4,8 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import '../CSS/Log.css';
 import { useCommon } from '../contexts/CommonContext';
+import { useParams, Link, useLocation } from 'react-router-dom';
+import { RiArrowGoBackLine } from 'react-icons/ri';
 
 const { Title } = Typography;
 const { Content } = Layout;
@@ -89,6 +91,17 @@ const SlidingAuthForm = () => {
   return (
     <Layout>
       <Content>
+        <button onClick={() => navigate('/')}>
+          <RiArrowGoBackLine
+            title='Quay lại trang chủ'
+            className='ri-arrow-go-back-line-recipe-detail m-3'
+            style={{
+              fontSize: 32,
+              padding: 5,
+              borderRadius: '99%',
+            }}
+          />
+        </button>
         <div className='auth-wrapper'>
           <div className={`container ${isLogin ? '' : 'right-panel-active'}`}>
             <div className='form-container sign-up-container'>

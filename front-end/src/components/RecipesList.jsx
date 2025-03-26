@@ -652,11 +652,13 @@ function RecipesList() {
               </Col>
             </Row>
 
-            <BiPencil
-              title='Chia sẻ công thức'
-              onClick={() => setShowCreateRecipeModal(true)}
-              className='icon-add-recipe-bi-plus-pencil'
-            />
+            {userDataLocal && (
+              <BiPencil
+                title='Chia sẻ công thức'
+                onClick={() => setShowCreateRecipeModal(true)}
+                className='icon-add-recipe-bi-plus-pencil'
+              />
+            )}
 
             {/* Modal for creating new recipe */}
             <Modal
