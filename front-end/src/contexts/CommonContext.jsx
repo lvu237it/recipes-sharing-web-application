@@ -343,100 +343,23 @@ export const Common = ({ children }) => {
     }
   };
 
-  // const handlePostRecipe = async () => {
-  //   if (
-  //     foodCategoriesListForNewRecipe.length === 0 ||
-  //     inputRecipeName.trim() === '' ||
-  //     inputRecipeDescription.trim() === '' ||
-  //     ingredientsListForNewRecipe.length === 0 ||
-  //     stepsListForNewRecipe.length === 0 ||
-  //     imageRecipe === null
-  //   ) {
-  //     toast.warning(
-  //       <>
-  //         <div className=''>Hãy bổ sung đầy đủ các thông tin cần thiết!</div>
-  //       </>
-  //     );
-  //     return;
-  //   }
-
-  //   const formData = new FormData();
-  //   formData.append(
-  //     'foodCategories',
-  //     JSON.stringify(foodCategoriesListForNewRecipe)
-  //   );
-  //   formData.append('title', inputRecipeName);
-  //   formData.append('description', inputRecipeDescription);
-  //   formData.append('ingredients', JSON.stringify(ingredientsListForNewRecipe));
-  //   formData.append('steps', JSON.stringify(stepsListForNewRecipe));
-  //   formData.append('owner', userDataLocal._id);
-  //   formData.append('sources', JSON.stringify(sourcesListForNewRecipe));
-
-  //   console.log('formdata', formData);
-
-  //   try {
-  //     setShowCreateRecipeModal(false);
-
-  //     const promise = () =>
-  //       new Promise((resolve) =>
-  //         setTimeout(() => resolve({ name: 'my-toast-creating-recipe' }), 2000)
-  //       );
-
-  //     // Upload ảnh trực tiếp lên Cloudinary
-  //     const uploadResponse = await uploadImageToCloudinary(imageRecipe);
-
-  //     console.log('uploadresponse', uploadResponse);
-  //     console.log(uploadResponse === null);
-  //     if (uploadResponse !== null) {
-  //       console.log('tiến hành post');
-  //       formData.append('imageUrl', uploadResponse); // Đính kèm URL ảnh đã upload
-
-  //       // Tiến hành gửi yêu cầu POST đến backend với ảnh đã upload
-  //       const response = await axios.post(
-  //         'http://localhost:3000/recipes/create-new-recipe',
-  //         formData,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${accessToken}`,
-  //           },
-  //         }
-  //       );
-
-  //       toast.promise(promise, {
-  //         loading: 'Vui lòng chờ quá trình tải lên hoàn tất...',
-  //         success: () => {
-  //           if (response.status === 200) {
-  //             setRecipes((preRecipes) => [response.data.data, ...preRecipes]);
-  //             console.log('Create recipe post successfully!');
-  //           } else {
-  //             console.log('Create recipe post failed!');
-  //           }
-
-  //           return `Tạo công thức mới thành công!`;
-  //         },
-  //         error: 'Đã có lỗi xảy ra trong quá trình tải lên.',
-  //       });
-  //     }
-
-  //     // console.error('Error uploading image to Cloudinary:', error);
-  //     // return;
-  //   } catch (error) {
-  //     console.error('Error uploading image to Cloudinary:', error);
-  //   }
-  // };
-
   const handlePostRecipe = async () => {
     if (
       foodCategoriesListForNewRecipe.length === 0 ||
       inputRecipeName.trim() === '' ||
+      !/^[a-zA-ZÀ-ỹ\s]+$/.test(inputRecipeName.trim()) ||
       inputRecipeDescription.trim() === '' ||
+      !/^[a-zA-ZÀ-ỹ\s]+$/.test(inputRecipeDescription.trim()) ||
       ingredientsListForNewRecipe.length === 0 ||
       stepsListForNewRecipe.length === 0 ||
       imageRecipe === null
     ) {
       toast.warning(
         <>
-          <div className=''>Hãy bổ sung đầy đủ các thông tin cần thiết!</div>
+          <div className=''>
+            Hãy bổ sung đầy đủ các thông tin cần thiết và đảm bảo tên món ăn chỉ
+            chứa các chữ cái!
+          </div>
         </>
       );
       return;
@@ -469,11 +392,9 @@ export const Common = ({ children }) => {
       console.log('uploadresponse', uploadResponse);
 
       if (uploadResponse !== null) {
-        console.log('tiến hành post');
         formData.append('imageUrl', uploadResponse); // Add the uploaded image URL
 
         // Log again after adding imageUrl
-        console.log('formdata after adding imageUrl:');
         for (let pair of formData.entries()) {
           console.log(pair[0] + ': ' + pair[1]);
         }
@@ -492,8 +413,6 @@ export const Common = ({ children }) => {
 
         // Handle response
         if (response.status === 200) {
-          // Không trực tiếp setRecipes mới vì nó còn đang chờ duyệt
-          // setRecipes((preRecipes) => [response.data.data, ...preRecipes]);
           toast.success(
             'Tạo công thức mới thành công! Công thức của bạn đang chờ được duyệt.'
           );

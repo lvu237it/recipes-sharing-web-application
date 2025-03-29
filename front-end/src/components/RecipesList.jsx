@@ -508,7 +508,7 @@ function RecipesList() {
                     }}
                     onClick={() => navigate('/login')}
                   >
-                    <div>Đăng nhập</div>
+                    <div>Đăng nhập/ký</div>
                     <TbDoorEnter size={20} style={{ margin: 'auto' }} />
                   </div>
                 ) : (
